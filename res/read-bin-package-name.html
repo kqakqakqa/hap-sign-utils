@@ -1,0 +1,40 @@
+<input type="file" id="binFileInput" />
+<button onclick="readPackageName()">读取包名</button>
+<script>
+  function readPackageName() {
+    const input = document.getElementById("binFileInput");
+    if (input.files.length === 0) {
+      alert("请选择一个 .bin 文件");
+      return;
+    }
+    const file = input.files[0];
+    const reader = new FileReader();
+
+    reader.onload = function (e) {
+      const buffer = e.target.result;
+      const view = new DataView(buffer);
+
+      // 读魔数 1 byte
+      const magic = view.getUint8(0);
+      if (magic !== 190) {
+        alert(`魔数错误，期望 190，实际 ${magic}`);
+        return;
+      }
+
+      // 读包名长度 4 bytes 大端
+      const nameLen = view.getUint32(1, false); // false = big endian
+
+      // 读包名字符串字节
+      const nameBytes = new Uint8Array(buffer, 5, nameLen);
+
+      // UTF-8 解码
+      const decoder = new TextDecoder("utf-8");
+      const packageName = decoder.decode(nameBytes);
+
+      alert("包名是: " + packageName);
+      console.log("包名:", packageName);
+    };
+
+    reader.readAsArrayBuffer(file);
+  }
+</script>

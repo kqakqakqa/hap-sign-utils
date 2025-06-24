@@ -1,0 +1,94 @@
+<input type="file" id="hapInput" accept=".hap,.zip" />
+<button onclick="convertHapToBin()">Convert</button>
+<script src="https://cdn.jsdelivr.net/npm/jszip"></script>
+<script>
+  const MAGIC_BYTE = 190;
+
+  async function convertHapToBin() {
+    const file = document.getElementById("hapInput").files[0];
+    if (!file) return alert("请选择 .hap 文件");
+
+    const zip = await JSZip.loadAsync(file);
+
+    const configFile = zip.file("config.json");
+    if (!configFile) return alert("config.json 不存在");
+
+    const configText = await configFile.async("text");
+    let bundleName = "";
+    try {
+      const config = JSON.parse(configText);
+      bundleName = config.app?.bundleName || "";
+    } catch {
+      return alert("config.json 解析失败");
+    }
+    if (!bundleName) return alert("未找到 bundleName");
+
+    const encoder = new TextEncoder();
+    const parts = [];
+
+    // 写入 magic byte
+    parts.push(Uint8Array.from([MAGIC_BYTE]));
+
+    // 写入 bundleName 长度（big endian int）+ 内容
+    const bundleNameBytes = encoder.encode(bundleName);
+    parts.push(makeInt32BE(bundleNameBytes.length));
+    parts.push(bundleNameBytes);
+
+    let fileCount = 0;
+    const sortedEntries = Object.entries(zip.files)
+      .filter(([path, entry]) => !entry.dir)
+      .sort((a, b) => {
+        const depthA = a[0].split("/").length;
+        const depthB = b[0].split("/").length;
+        if (depthA !== depthB) return depthA - depthB;
+        return a[0].localeCompare(b[0]);
+      });
+
+
+    for (const [fullPath, zipEntry] of sortedEntries) {
+      if (zipEntry.dir) continue;
+
+      const content = await zipEntry.async("uint8array");
+      const fileName = fullPath.split("/").pop();
+      let relPath = "/" + fullPath.substring(0, fullPath.lastIndexOf("/"));
+      if (!relPath || relPath === "/") relPath = "";
+
+      const fileNameBytes = encoder.encode(fileName);
+      const relPathBytes = encoder.encode(relPath);
+
+      // 文件名长度 + 内容
+      parts.push(makeInt32BE(fileNameBytes.length));
+      parts.push(fileNameBytes);
+
+      // 相对路径长度 + 内容
+      parts.push(makeInt32BE(relPathBytes.length));
+      parts.push(relPathBytes);
+
+      // 内容长度（8 字节） + 内容
+      parts.push(makeInt64BE(content.length));
+      parts.push(content);
+
+      fileCount++;
+    }
+
+    console.log(`已写入 ${fileCount} 个文件`);
+
+    const finalBlob = new Blob(parts, { type: "application/octet-stream" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(finalBlob);
+    a.download = bundleName + ".bin";
+    a.click();
+  }
+
+  function makeInt32BE(num) {
+    const buffer = new ArrayBuffer(4);
+    new DataView(buffer).setUint32(0, num, false); // false = big endian
+    return new Uint8Array(buffer);
+  }
+
+  function makeInt64BE(num) {
+    const buffer = new ArrayBuffer(8);
+    new DataView(buffer).setBigUint64(0, BigInt(num), false); // false = big endian
+    return new Uint8Array(buffer);
+  }
+</script>
