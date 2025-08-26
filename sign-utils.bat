@@ -120,7 +120,7 @@ if not exist "!profileFile!" (
 )
 
 if not exist "!keystoreFile!" (
-  echo 未在证书目录中找到 !profileFile! ，终止。
+  echo 未在证书目录中找到 !keystoreFile! ，终止。
   goto end
 )
 
