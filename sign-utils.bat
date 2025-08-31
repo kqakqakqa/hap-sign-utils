@@ -100,27 +100,29 @@ goto sign_and_package
 
 
 :sign_and_package
-for %%f in ("%certFolder%\*.cer") do set "baseName=%%~nf"
+for %%f in ("%certFolder%\*.cer") do set "cerName=%%~nf"
+for %%f in ("%certFolder%\*.p12") do set "p12Name=%%~nf"
 
-if not defined baseName (
+if not defined cerName (
   echo 未在证书目录中找到 .cer 文件，终止。
   goto end
 )
 
-set "appCertFile=%certFolder%\!baseName!.cer"
-set "profileFile=%certFolder%\!packageName!Debug.p7b"
-set "keystoreFile=%certFolder%\!baseName!.p12"
-set "keyAlias=!baseName!"
-set "keyPwd=!baseName!"
-set "keystorePwd=!baseName!"
-
-if not exist "!profileFile!" (
-  echo 未在证书目录中找到 !profileFile! ，终止。
+if not defined p12Name (
+  echo 未在证书目录中找到 .p12 文件，终止。
   goto end
 )
 
-if not exist "!keystoreFile!" (
-  echo 未在证书目录中找到 !keystoreFile! ，终止。
+set "appCertFile=%certFolder%\!cerName!.cer"
+set "keystoreFile=%certFolder%\!p12Name!.p12"
+set "keyAlias=!p12Name!"
+set "keyPwd=!p12Name!"
+set "keystorePwd=!p12Name!"
+
+set "profileFile=%certFolder%\!packageName!Debug.p7b"
+
+if not exist "!profileFile!" (
+  echo 未在证书目录中找到 !profileFile! ，终止。
   goto end
 )
 
