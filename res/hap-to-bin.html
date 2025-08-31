@@ -1,83 +1,146 @@
-<input type="file" id="hapInput" accept=".hap,.zip" />
-<button onclick="convertHapToBin()">Convert</button>
-<script src="https://cdn.jsdelivr.net/npm/jszip"></script>
+<p>
+  <a id="downloadCsr" download="default.csr">下载 .csr 文件</a>
+</p>
+<p>
+  <label for="bundleNameInput">输入包名：</label>
+  <button onclick="autoBundleName()">帮我生成一个</button>
+  <input type="text" id="bundleNameInput" style="width: 100%;" />
+</p>
+<p>
+  <a href="https://developer.huawei.com/consumer/cn/service/josp/agc/index.html#/" target="_blank">打开华为 AppGallery
+    Connect</a>
+</p>
+<p>
+  <label for="hapInput">选择 .app 文件：</label>
+  <input type="file" id="hapInput" accept=".hap,.zip" style="width: 100%;" />
+</p>
+<button onclick="convertHapToBin()">签名</button>
+
 <script>
-  const MAGIC_BYTE = 190;
+  const csrFile = `-----BEGIN NEW CERTIFICATE REQUEST-----
+MIH+MIGkAgEAMBIxEDAOBgNVBAMMB2RlZmF1bHQwWTATBgcqhkjOPQIBBggqhkjO
+PQMBBwNCAAR1VIBWnhZckS1Xr/GvhEpgr+HpSdlP48szkRw5xes+5+D2pAXts0Or
+sXQ4Y0u/RIWqF7oF7tAtSt92rlhsGUSLoDAwLgYJKoZIhvcNAQkOMSEwHzAdBgNV
+HQ4EFgQUIHP+3xCgek7Vv5FaHLI4sMRIpVMwCgYIKoZIzj0EAwIDSQAwRgIhAPIs
+6WmMIQ+uLZAKEC4scBCNMXa2kZmlZcjFZo/L8S+6AiEAsbsz8jEJMXEL0SNXTAi3
+KSHU01xBcwv1Q2Oi5zRlxos=
+-----END NEW CERTIFICATE REQUEST-----`;
+  document.querySelector("#downloadCsr").href = URL.createObjectURL(new Blob([csrFile], { type: "text/plain" }));
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/jszip"></script>
+
+<script>
+  async function autoBundleName() {
+    const date = new Date();
+    const year = date.getFullYear();
+    const month = ('0' + (date.getMonth() + 1)).slice(-2);
+    const day = ('0' + date.getDate()).slice(-2);
+    const hours = ('0' + date.getHours()).slice(-2);
+    const minutes = ('0' + date.getMinutes()).slice(-2);
+    const seconds = ('0' + date.getSeconds()).slice(-2);
+    const bundleName = "com.example.hapsign" + year + month + day + hours + minutes + seconds;
+    document.querySelector("#bundleNameInput").value = bundleName;
+    try { await navigator.clipboard.writeText(bundleName); } catch {
+      return;
+    }
+    alert("已复制到剪贴板");
+  }
 
   async function convertHapToBin() {
-    const file = document.getElementById("hapInput").files[0];
-    if (!file) return alert("请选择 .hap 文件");
-
-    const zip = await JSZip.loadAsync(file);
-
-    const configFile = zip.file("config.json");
-    if (!configFile) return alert("config.json 不存在");
-
-    const configText = await configFile.async("text");
-    let bundleName = "";
     try {
-      const config = JSON.parse(configText);
-      bundleName = config.app?.bundleName || "";
-    } catch {
-      return alert("config.json 解析失败");
+      const appFile = document.querySelector("#hapInput").files[0];
+      if (!appFile) return alert("请选择 .app 文件");
+
+      const bundleName = document.querySelector("#bundleNameInput").value.trim();
+      if (!/^[a-zA-Z][a-zA-Z0-9_]*(\.[a-zA-Z][a-zA-Z0-9_]*)+$/.test(bundleName)) {
+        return alert("输入的包名不规范");
+      }
+
+      const appLoad = await JSZip.loadAsync(appFile);
+      const hapEntry = Object.values(appLoad.files).find(f => f.name.endsWith(".hap"));
+      if (!hapEntry) return alert(".app 文件中没有找到 .hap 文件");
+
+      const hapBlob = await hapEntry.async("blob");
+      const hapLoad = await JSZip.loadAsync(hapBlob);
+
+      const configFile = hapLoad.file("config.json");
+      if (!configFile) return alert("config.json 不存在");
+
+      const configText = await configFile.async("text");
+      let config;
+      try {
+        config = JSON.parse(configText);
+      } catch {
+        return alert("config.json 解析失败");
+      }
+
+      // 修改 config.json 内的 bundleName
+      if (!config.app) config.app = {};
+      config.app.bundleName = bundleName;
+
+      // 更新 zip 内的 config.json
+      hapLoad.file("config.json", JSON.stringify(config));
+
+      const encoder = new TextEncoder();
+      const parts = [];
+
+      // 写入 magic byte
+      const MAGIC_BYTE = 0xBE;
+      parts.push(Uint8Array.from([MAGIC_BYTE]));
+
+      // 写入 bundleName 长度（big endian int）+ 内容
+      const bundleNameBytes = encoder.encode(bundleName);
+      parts.push(makeInt32BE(bundleNameBytes.length));
+      parts.push(bundleNameBytes);
+
+      let fileCount = 0;
+      const sortedEntries = Object.entries(hapLoad.files)
+        .filter(([path, entry]) => !entry.dir)
+        .sort((a, b) => {
+          const depthA = a[0].split("/").length;
+          const depthB = b[0].split("/").length;
+          if (depthA !== depthB) return depthA - depthB;
+          return a[0].localeCompare(b[0]);
+        });
+
+      for (const [fullPath, zipEntry] of sortedEntries) {
+        if (zipEntry.dir) continue;
+
+        const content = await zipEntry.async("uint8array");
+        const fileName = fullPath.split("/").pop();
+        let relPath = "/" + fullPath.substring(0, fullPath.lastIndexOf("/"));
+        if (relPath === "/") relPath = "";
+
+        const fileNameBytes = encoder.encode(fileName);
+        const relPathBytes = encoder.encode(relPath);
+
+        // 文件名长度 + 内容
+        parts.push(makeInt32BE(fileNameBytes.length));
+        parts.push(fileNameBytes);
+
+        // 相对路径长度 + 内容
+        parts.push(makeInt32BE(relPathBytes.length));
+        parts.push(relPathBytes);
+
+        // 内容长度（8 字节） + 内容
+        parts.push(makeInt64BE(content.length));
+        parts.push(content);
+
+        fileCount++;
+      }
+
+      console.log(`已写入 ${fileCount} 个文件`);
+
+      const finalBlob = new Blob(parts, { type: "application/octet-stream" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(finalBlob);
+      a.download = bundleName + ".bin";
+      a.click();
+    } catch (e) {
+      alert("签名失败：" + e.message);
+      throw e;
     }
-    if (!bundleName) return alert("未找到 bundleName");
-
-    const encoder = new TextEncoder();
-    const parts = [];
-
-    // 写入 magic byte
-    parts.push(Uint8Array.from([MAGIC_BYTE]));
-
-    // 写入 bundleName 长度（big endian int）+ 内容
-    const bundleNameBytes = encoder.encode(bundleName);
-    parts.push(makeInt32BE(bundleNameBytes.length));
-    parts.push(bundleNameBytes);
-
-    let fileCount = 0;
-    const sortedEntries = Object.entries(zip.files)
-      .filter(([path, entry]) => !entry.dir)
-      .sort((a, b) => {
-        const depthA = a[0].split("/").length;
-        const depthB = b[0].split("/").length;
-        if (depthA !== depthB) return depthA - depthB;
-        return a[0].localeCompare(b[0]);
-      });
-
-
-    for (const [fullPath, zipEntry] of sortedEntries) {
-      if (zipEntry.dir) continue;
-
-      const content = await zipEntry.async("uint8array");
-      const fileName = fullPath.split("/").pop();
-      let relPath = "/" + fullPath.substring(0, fullPath.lastIndexOf("/"));
-      if (!relPath || relPath === "/") relPath = "";
-
-      const fileNameBytes = encoder.encode(fileName);
-      const relPathBytes = encoder.encode(relPath);
-
-      // 文件名长度 + 内容
-      parts.push(makeInt32BE(fileNameBytes.length));
-      parts.push(fileNameBytes);
-
-      // 相对路径长度 + 内容
-      parts.push(makeInt32BE(relPathBytes.length));
-      parts.push(relPathBytes);
-
-      // 内容长度（8 字节） + 内容
-      parts.push(makeInt64BE(content.length));
-      parts.push(content);
-
-      fileCount++;
-    }
-
-    console.log(`已写入 ${fileCount} 个文件`);
-
-    const finalBlob = new Blob(parts, { type: "application/octet-stream" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(finalBlob);
-    a.download = bundleName + ".bin";
-    a.click();
   }
 
   function makeInt32BE(num) {
