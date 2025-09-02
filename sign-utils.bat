@@ -143,7 +143,8 @@ java -jar "%~dp0res\hap-sign-tool.jar" sign-app ^
 -signAlg SHA256withECDSA ^
 -keystoreFile "!keystoreFile!" ^
 -keystorePwd !keystorePwd! ^
--outFile "!signedBinFile!"
+-outFile "!signedBinFile!" ^
+-signCode 0
 
 if not exist "!signedBinFile!" (
   echo 签名失败，未生成 bin 文件。
