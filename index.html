@@ -1,66 +1,235 @@
-<p>
-  <label for="bundleNameInput">输入包名：</label>
-  <button onclick="autoBundleName()">帮我生成一个</button>
-  <input type="text" id="bundleNameInput" style="width: 50%;" />
-</p>
-<p>
-  <a id="downloadCsr" download="default.csr">下载 .csr 文件</a>
-</p>
-<p>
-  <a href="https://developer.huawei.com/consumer/cn/service/josp/agc/index.html#/" target="_blank" rel="noopener">
-    打开华为 AppGallery Connect
-  </a>
-</p>
-<p>
-  <label for="appInput">选择 .app 文件：</label>
-  <input type="file" id="appInput" accept=".app" />
-</p>
-<p>
-  <label for="cerInput">选择 .cer 文件：</label>
-  <input type="file" id="cerInput" accept=".cer" />
-</p>
-<p>
-  <label for="p7bInput">选择 .p7b 文件：</label>
-  <input type="file" id="p7bInput" accept=".p7b" />
-</p>
-<button onclick="signHap()">签名</button><span id="progressHint"></span>
+<div class="tool-card">
+  <div class="step">
+    <div class="file-upload">
+      <input type="file" id="appInput" accept=".app" class="file-input" />
+      <label for="appInput" class="file-label">
+        <div>
+          <span class="file-icon">📁</span>
+          选择 .app 文件
+        </div>
+        <div id="appFileName" class="file-name">未选择文件</div>
+      </label>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="card">
+      <div class="hint">没有p7b文件？</div>
+      <div class="button-group">
+        <a id="downloadCsr" download="default.csr" class="btn hint-btn">
+          1. 下载 .csr 文件
+          <span class="btn-icon">📥</span>
+        </a>
+        <button onclick="autoBundleName()" class="hint-btn">
+          2. 帮我生成一个包名
+          <span class="btn-icon">📦</span>
+        </button>
+        <a href="https://developer.huawei.com/consumer/cn/service/josp/agc/index.html#/" target="_blank" rel="noopener"
+          class="btn hint-btn">
+          3. 打开华为 AppGallery Connect
+          <span class="btn-icon">↗</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="file-upload">
+      <input type="file" id="p7bInput" accept=".p7b" class="file-input" />
+      <label for="p7bInput" class="file-label">
+        <div>
+          <span class="file-icon">📁</span>
+          选择 .p7b 文件
+        </div>
+        <div id="p7bFileName" class="file-name">未选择文件</div>
+      </label>
+    </div>
+    <button onclick="signHap()" class="btn-primary">开始签名</button>
+  </div>
+</div>
+
+<style>
+  .tool-card {
+    justify-self: center;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    min-width: 50vmin;
+    padding: 24px;
+    border-radius: 12px;
+    background: #f8f9fa;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  .step {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .card {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px;
+    background: white;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+  }
+
+  .file-upload {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .file-input {
+    display: none;
+  }
+
+  .file-label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    text-align: center;
+    cursor: pointer;
+    background: white;
+    transition: all 0.2s;
+  }
+
+  .file-label:hover {
+    border-color: #0066ff;
+    background: #f0f6ff;
+  }
+
+  .file-icon {
+    font-size: 1.2rem;
+  }
+
+  .file-name {
+    font-size: 1rem;
+    color: #666;
+    padding: 0 4px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .btn,
+  .btn-secondary,
+  .btn-primary {
+    padding: 12px;
+    border-radius: 8px;
+    text-align: center;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 1rem;
+  }
+
+  .btn-primary {
+    background: #0066ff;
+    color: white;
+    font-weight: 500;
+    width: 100%;
+    margin-top: 8px;
+  }
+
+  .btn-primary:hover {
+    background: #0055dd;
+  }
+
+  .hint {
+    font-size: 0.9rem;
+    color: #666;
+    text-align: center;
+    margin-top: 4px;
+  }
+
+  /* 统一按钮样式 */
+  .button-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .hint-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px;
+    border-radius: 8px;
+    text-align: center;
+    text-decoration: none;
+    border: 1px solid #ddd;
+    background: white;
+    color: #495057;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.9rem;
+    justify-content: center;
+  }
+
+  .hint-btn:hover {
+    border-color: #0066ff;
+    background: #f0f6ff;
+    color: #0066ff;
+  }
+
+  .btn-icon {
+    font-size: 1rem;
+  }
+</style>
+
+<script>
+  // 显示文件名
+  document.getElementById('appInput').addEventListener('change', function (e) {
+    const fileName = e.target.files[0]?.name || '未选择文件';
+    document.getElementById('appFileName').textContent = fileName;
+  });
+
+  document.getElementById('p7bInput').addEventListener('change', function (e) {
+    const fileName = e.target.files[0]?.name || '未选择文件';
+    document.getElementById('p7bFileName').textContent = fileName;
+  });
+</script>
+
+
+
+
+
+
+
+
+
+
+
 
 <script src="https://cdn.jsdelivr.net/npm/jszip"></script>
-<!-- <script src="https://cjrtnc.leaningtech.com/4.2/loader.js"></script> -->
-<!-- <script src="https://cjrtnc.leaningtech.com/3.0/cj3loader.js"></script> -->
-<!-- <script src="https://cjrtnc.leaningtech.com/2.3/loader.js"></script> -->
 
 <script type="module">
-  // import * as asn1js from 'https://cdn.jsdelivr.net/npm/asn1js@3.0.6/+esm';
-  // import * as pkijs from 'https://cdn.jsdelivr.net/npm/pkijs@3.2.5/+esm';
   import * as jsrsasign from 'https://cdn.jsdelivr.net/npm/jsrsasign@11.1.0/+esm';
 
   const csrFile = "-----BEGIN NEW CERTIFICATE REQUEST-----\nMIH+MIGkAgEAMBIxEDAOBgNVBAMMB2RlZmF1bHQwWTATBgcqhkjOPQIBBggqhkjO\nPQMBBwNCAAR1VIBWnhZckS1Xr/GvhEpgr+HpSdlP48szkRw5xes+5+D2pAXts0Or\nsXQ4Y0u/RIWqF7oF7tAtSt92rlhsGUSLoDAwLgYJKoZIhvcNAQkOMSEwHzAdBgNV\nHQ4EFgQUIHP+3xCgek7Vv5FaHLI4sMRIpVMwCgYIKoZIzj0EAwIDSQAwRgIhAPIs\n6WmMIQ+uLZAKEC4scBCNMXa2kZmlZcjFZo/L8S+6AiEAsbsz8jEJMXEL0SNXTAi3\nKSHU01xBcwv1Q2Oi5zRlxos=\n-----END NEW CERTIFICATE REQUEST-----";
   const p12Base64 = "MIIECwIBAzCCA8EGCSqGSIb3DQEHAaCCA7IEggOuMIIDqjCCAjoGCSqGSIb3DQEHBqCCAiswggInAgEAMIICIAYJKoZIhvcNAQcBMF8GCSqGSIb3DQEFDTBSMDEGCSqGSIb3DQEFDDAkBBCdTmEgtBxvOTX+9n4TAKrgAgJOIDAMBggqhkiG9w0CCQUAMB0GCWCGSAFlAwQBKgQQfKQ2yt2YyfKFpvoOTpoAsICCAbDwou30DZxuwZBAO41mDCWKytcsqR11o80oqFeLETtx+2ox/VEcjTtgVQ1BlxpUsKLqQUQw5ii/2yIaXVwAMBCRfbbu3D6Ltd2gFaYnsUCZlIUZ2mAeJvR6n6qh57UXWF94HuoZYdsbLWFDEK8TcTeDHdmsKvnbMw4UGwFHhLIUOQ3NGubmxrxMJHij8LeAdnwaQXX51OC2P8mSuDVvrexcAiYALnGBoTIfjZ3N8LwjdUR+pU2PRuEuthsDuRK8nzP5+wLuc2wh5wFU7utC5acerAWx1pB4uBXOSwd5nTkufxd/gCmLa3oMM8IVHdK9cr4ygLfZh+rLQRvSJKVQH5w4zNAvdgYZYMG+1sWmUFr4ul3Hlr6nz5ACfr8CyXhDSIt9r8TaGW/r0OaSR7rdQ/z0jaZVfp3cVrzzHUsjch0oeGpCl3bOwYnG0uth7RNCG/9SZEzSbPzyQe7Hkk+mpLu/7FxE6K/mtRgT+T0yWmABWfy0dpd5qlsh3T9k+jPyjo3vvzDv8WMkzb7uh1CjET7HrSGJ+jgrmBkGZxI4SRf48gwpqtTpbCh/xxOQvBPFHnIwggFoBgkqhkiG9w0BBwGgggFZBIIBVTCCAVEwggFNBgsqhkiG9w0BDAoBAqCB9zCB9DBfBgkqhkiG9w0BBQ0wUjAxBgkqhkiG9w0BBQwwJAQQqe5iktWgadtS0Utmte0HAQICTiAwDAYIKoZIhvcNAgkFADAdBglghkgBZQMEASoEEHurTSYsJqy7fq3cbNxAkEwEgZAkb/2AE4rhboaGyTFnPrTdUV7sV3na9rayFaCzTehnnGlhIKjjcd6Fc9U1h71pgOiGITQsCxR86GRsenrZaHjpz+4Rc/xgbhUgSV1WtIhPiBHewNNyC6ObtxMwJnbWYG2vS2cq1hb5iFVyLSynSvw4j1IpOUemCdnedGQVsP6ej4/vtC69l7P6vFjp9YC5+IcxRDAdBgkqhkiG9w0BCRQxEB4OAGQAZQBmAGEAdQBsAHQwIwYJKoZIhvcNAQkVMRYEFKYzJncFFDQb5B+oRJGbVy4krtmmMEEwMTANBglghkgBZQMEAgEFAAQg/jx8QAXgx4ujLx9flAjosCoFRs+7HIFEGkc43Kj40yMECHgv6uu9jsAZAgIIAA==";
   const p12Pem = "-----BEGIN PRIVATE KEY-----\nMIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgBCsp9yrXDMGvvKib\nUddAWZEqNGZmyELWeaJM19FbjGmhRANCAAR1VIBWnhZckS1Xr/GvhEpgr+HpSdlP\n48szkRw5xes+5+D2pAXts0OrsXQ4Y0u/RIWqF7oF7tAtSt92rlhsGUSL\n-----END PRIVATE KEY-----";
+  const cerRoot = "-----BEGIN CERTIFICATE-----\nMIICGjCCAaGgAwIBAgIIShhpn519jNAwCgYIKoZIzj0EAwMwUzELMAkGA1UEBhMC\nQ04xDzANBgNVBAoMBkh1YXdlaTETMBEGA1UECwwKSHVhd2VpIENCRzEeMBwGA1UE\nAwwVSHVhd2VpIENCRyBSb290IENBIEcyMB4XDTIwMDMxNjAzMDQzOVoXDTQ5MDMx\nNjAzMDQzOVowUzELMAkGA1UEBhMCQ04xDzANBgNVBAoMBkh1YXdlaTETMBEGA1UE\nCwwKSHVhd2VpIENCRzEeMBwGA1UEAwwVSHVhd2VpIENCRyBSb290IENBIEcyMHYw\nEAYHKoZIzj0CAQYFK4EEACIDYgAEWidkGnDSOw3/HE2y2GHl+fpWBIa5S+IlnNrs\nGUvwC1I2QWvtqCHWmwFlFK95zKXiM8s9yV3VVXh7ivN8ZJO3SC5N1TCrvB2lpHMB\nwcz4DA0kgHCMm/wDec6kOHx1xvCRo0IwQDAOBgNVHQ8BAf8EBAMCAQYwDwYDVR0T\nAQH/BAUwAwEB/zAdBgNVHQ4EFgQUo45a9Vq8cYwqaiVyfkiS4pLcIAAwCgYIKoZI\nzj0EAwMDZwAwZAIwMypeB7P0IbY7c6gpWcClhRznOJFj8uavrNu2PIoz9KIqr3jn\nBlBHJs0myI7ntYpEAjBbm8eDMZY5zq5iMZUC6H7UzYSix4Uy1YlsLVV738PtKP9h\nFTjgDHctXJlC5L7+ZDY=\n-----END CERTIFICATE-----\n-----BEGIN CERTIFICATE-----\nMIIDATCCAoigAwIBAgIIXmuDXbWpOB8wCgYIKoZIzj0EAwMwUzELMAkGA1UEBhMC\nQ04xDzANBgNVBAoMBkh1YXdlaTETMBEGA1UECwwKSHVhd2VpIENCRzEeMBwGA1UE\nAwwVSHVhd2VpIENCRyBSb290IENBIEcyMB4XDTIwMDcwOTAyMDQyNFoXDTMwMDcw\nNzAyMDQyNFowYjELMAkGA1UEBgwCQ04xDzANBgNVBAoMBkh1YXdlaTETMBEGA1UE\nCwwKSHVhd2VpIENCRzEtMCsGA1UEAwwkSHVhd2VpIENCRyBEZXZlbG9wZXIgUmVs\nYXRpb25zIENBIEcyMHYwEAYHKoZIzj0CAQYFK4EEACIDYgAE65LdoIZh1hlpZ2gP\nbJ6gPhHsvYSRe22KETgdqeVeYnrbRHI9wsPT6RGYS+pU4mPl6wxzgDMqN6SY/BoZ\nluhkE1PzaHoPoNIWIq0O33hpyKyyYwAacIUEjYurkw1E9r9no4IBGDCCARQwHwYD\nVR0jBBgwFoAUo45a9Vq8cYwqaiVyfkiS4pLcIAAwHQYDVR0OBBYEFNtek7Ij6NDk\n/nF6Zumkc0dbf/NeMEYGA1UdIAQ/MD0wOwYEVR0gADAzMDEGCCsGAQUFBwIBFiVo\ndHRwOi8vY3BraS1jYXdlYi5odWF3ZWkuY29tL2Nwa2kvY3BzMBIGA1UdEwEB/wQI\nMAYBAf8CAQAwDgYDVR0PAQH/BAQDAgEGMGYGA1UdHwRfMF0wW6BZoFeGVWh0dHA6\nLy9jcGtpLWNhd2ViLmh1YXdlaS5jb20vY3BraS9zZXJ2bGV0L2NybEZpbGVEb3du\nLmNybD9jZXJ0eXBlPTEwJi9yb290X2cyX2NybC5jcmwwCgYIKoZIzj0EAwMDZwAw\nZAIwWO1X5q2MdfpR1Q237GpUHGbL1C13rGyFg2p3AYo44FpZ2/A9ss0wOHKM4KDl\nZPqdAjBLkf8NPZy7KVog98+iCTLq35DJ2ZVxkCxknA9YhiHVyXf4HPm4JlT7rW7o\nQ+FzM3c=\n-----END CERTIFICATE-----\n"
 
   // const p12Blob = base64ToBlob(p12Base64);
+  const p12Uint8Array = base64ToUint8Array(p12Base64);
   document.querySelector("#downloadCsr").href = URL.createObjectURL(new Blob([csrFile], { type: "text/plain" }));
 
   window.signHap = signHap;
   window.autoBundleName = autoBundleName;
 
-  // (async () => {
-  //   await cheerpjInit({ version: 11, enableDebug: true });
-  //   cheerpjCreateConsole({});
-  // })()
-
   async function autoBundleName() {
-    const date = new Date();
-    const year = date.getFullYear();
-    const month = ('0' + (date.getMonth() + 1)).slice(-2);
-    const day = ('0' + date.getDate()).slice(-2);
-    const hours = ('0' + date.getHours()).slice(-2);
-    const minutes = ('0' + date.getMinutes()).slice(-2);
-    const seconds = ('0' + date.getSeconds()).slice(-2);
-    const bundleName = "com.example.hapsign" + year + month + day + hours + minutes + seconds;
-    document.querySelector("#bundleNameInput").value = bundleName;
+    const bundleName = "com.example.hapsign" + getTimeStr(new Date(new Date().getTime() + 8 * 3600 * 1000));
     try { await navigator.clipboard.writeText(bundleName); } catch {
+      alert("复制失败");
       return;
     }
     alert("已复制到剪贴板");
@@ -69,17 +238,32 @@
   async function signHap() {
     try {
       // input
-      const bundleName = document.querySelector("#bundleNameInput").value.trim();
-      console.log("bundleName: ", bundleName);
-      if (!/^[a-zA-Z][a-zA-Z0-9_]*(\.[a-zA-Z][a-zA-Z0-9_]*)+$/.test(bundleName)) {
-        return alert("输入的包名不规范");
-      }
       const appFile = document.querySelector("#appInput").files[0];
       if (!appFile) return alert("请选择 .app 文件");
-      const cerFile = document.querySelector("#cerInput").files[0];
-      if (!cerFile) return alert("请选择 .cer 文件");
+      // const cerFile = document.querySelector("#cerInput").files[0];
+      // if (!cerFile) return alert("请选择 .cer 文件");
       const p7bFile = document.querySelector("#p7bInput").files[0];
       if (!p7bFile) return alert("请选择 .p7b 文件");
+
+      // 解析 p7b
+      const p7bUint8Array = new Uint8Array(await p7bFile.arrayBuffer());
+      const p7bHex = uint8ArrayToHex(p7bUint8Array);
+
+      const p7bParser = new jsrsasign.KJUR.asn1.cms.CMSParser();
+      const p7bEContentHex = p7bParser.getCMSSignedData(p7bHex).econtent.content.hex;
+      const p7bEContentStr = new TextDecoder().decode(hexToUint8Array(p7bEContentHex))
+      const p7bEContent = JSON.parse(p7bEContentStr);
+      console.log("p7b eContent: ", p7bEContent);
+
+      const bundleName = p7bEContent["bundle-info"]["bundle-name"];
+      console.log("bundleName: ", bundleName);
+
+      const signTime = p7bEContent.validity["not-before"];
+      const signTimeStr = getTimeStr(new Date(signTime * 1000)) + "Z";
+      console.log("signTime: ", signTime, signTimeStr);
+
+      const cerLeaf = p7bEContent["bundle-info"]["development-certificate"];
+      const cerStr = cerRoot + cerLeaf;
 
       // 解压 app、hap
       const appLoad = await JSZip.loadAsync(appFile);
@@ -104,48 +288,16 @@
       //   compression: "STORE"
       // });
 
+      // const cerUint8Array = new Uint8Array(await cerFile.arrayBuffer());
+
       const unsignedBinUint8Array = await hapToBin(hapLoad);
-      const p12Uint8Array = base64ToUint8Array(p12Base64);
-      const p7bUint8Array = new Uint8Array(await p7bFile.arrayBuffer());
-      const cerUint8Array = new Uint8Array(await cerFile.arrayBuffer());
-
-      // // 调用 cheerpj 进行签名
-      // // await cheerpOSAddStringFile("/str/unsigned.hap", modifiedHapUint8Array);
-      // await cheerpOSAddStringFile("/str/unsigned.bin", unsignedBinUint8Array);
-      // await cheerpOSAddStringFile("/str/p12.p12", p12Uint8Array);
-      // await cheerpOSAddStringFile("/str/p7b.p7b", p7bUint8Array);
-      // await cheerpOSAddStringFile("/str/cer.cer", cerUint8Array);
-      // // await cheerpjAddStringFile("/str/unsigned.bin", unsignedBinUint8Array);
-      // // await cheerpjAddStringFile("/str/p12.p12", p12Uint8Array);
-      // // await cheerpjAddStringFile("/str/p7b.p7b", p7bUint8Array);
-      // // await cheerpjAddStringFile("/str/cer.cer", cerUint8Array);
-
-      // document.querySelector("#progressHint").innerText = "正在签名，请等待...";
-      // const consoleLog = console.log;
-      // let fail;
-      // console.log = (...args) => {
-      //   consoleLog(...args);
-      //   if (/INFO - sign-app failed/.test(args.map(a => String(a)).join(" "))) {
-      //     fail = true;
-      //   }
-      // };
-
-      // await cheerpjRunJar("/app/hap-sign-tool.jar", "sign-app", "-mode", "localSign", "-keyAlias", "default", "-keyPwd", "default", "-appCertFile", "/str/cer.cer", "-profileFile", "/str/p7b.p7b", "-inFile", "/str/unsigned.bin", "-inForm", "bin", "-signAlg", "SHA256withECDSA", "-keystoreFile", "/str/p12.p12", "-keystorePwd", "default", "-outFile", "/files/signed.bin", "-signCode", "0");
-
-      // document.querySelector("#progressHint").innerText = "";
-      // console.log = consoleLog;
-      // if (fail) {
-      //   throw Error("hap-sign.jar 执行出错");
-      //   return;
-      // }
-
-      // const signedBinBlob = await cjFileBlob("/files/signed.bin");
 
       const signedBinUint8Array = await signBin({
         unsignedBinUint8Array,
         p7bUint8Array,
         p12Pem,
-        cerFile
+        cerStr,
+        signTimeStr
       });
       const signedBinBlob = new Blob([signedBinUint8Array], { type: 'application/octet-stream' });
 
@@ -153,11 +305,11 @@
       signedHap.file("signed.bin", signedBinBlob, { binary: true, compression: "STORE" });
       const signedHapBlob = await signedHap.generateAsync({ type: "blob" });
 
+      alert("签名完成");
       const a = document.createElement("a");
       a.href = URL.createObjectURL(signedHapBlob);
-      a.download = appFile.name + ".hap";
+      a.download = appFile.name.replace(/\.app$/, "") + ".hap";
       a.click();
-      alert("签名完成");
     } catch (e) {
       alert("签名失败：" + e.message);
       throw e;
@@ -222,7 +374,7 @@
     return new Uint8Array(await (new Blob(parts, { type: "application/octet-stream" })).arrayBuffer());
   }
 
-  async function signBin({ unsignedBinUint8Array, p7bUint8Array, p12Pem, cerFile }) {
+  async function signBin({ unsignedBinUint8Array, p7bUint8Array, p12Pem, cerStr, signTimeStr }) {
     const unsignedBinLen = unsignedBinUint8Array.length;
     const p7bLen = p7bUint8Array.length;
     let offset = unsignedBinLen + 8 + 8;
@@ -239,7 +391,7 @@
     ], 0);
 
     const hashBytes = getByteContent(await slicedSHA256(bytes));
-    const outputChunk = await generateSignedData({ dataUint8Array: hashBytes, p12Pem, cerFile });
+    const outputChunk = await generateSignedData({ dataUint8Array: hashBytes, p12Pem, cerStr, signTimeStr });
 
     const bytes2 = new Uint8Array(unsignedBinLen + 8 + 8 + p7bLen + outputChunk.length);
     bytes2.set([
@@ -313,15 +465,14 @@
     return signHead;
   }
 
-  async function generateSignedData({ dataUint8Array, p12Pem, cerFile }) {
-    console.log(`generateSignedData ${dataUint8Array}, p12: ${p12Pem}, cer: ${await cerFile.text()}`);
+  async function generateSignedData({ dataUint8Array, p12Pem, cerStr, signTimeStr }) {
+    console.log(`generateSignedData ${dataUint8Array}, p12: ${p12Pem}, cer: ${cerStr}, signtime: ${signTimeStr}`);
 
     // 解密 P12 获取私钥
     // const pkcs12KeyObj = jsrsasign.KEYUTIL.getKey(p12Pem);
 
     // 读取 CER
-    const cerText = await cerFile.text();
-    const certs = sortCerts(cerText.trim().split(/(?=-----BEGIN CERTIFICATE-----)/).map(s => s.trim()));
+    const certs = sortCerts(cerStr.trim().split(/(?=-----BEGIN CERTIFICATE-----)/).map(s => s.trim()));
     // const certs = sortCerts(cerText.trim().split(/(?=-----BEGIN CERTIFICATE-----)/).map(s => s.trim())).map(pem => {
     //   const x = new jsrsasign.X509();
     //   x.readCertPEM(pem);
@@ -350,7 +501,7 @@
         sattrs: {
           array: [{
             attr: "signingTime",
-            type: new jsrsasign.KJUR.asn1.cms.SigningTime(),
+            type: new jsrsasign.KJUR.asn1.cms.SigningTime(signTimeStr),
           },
           {
             attr: "contentType",
@@ -453,4 +604,14 @@
   // function base64ToBlob(base64) {
   //   return new Blob([base64ToUint8Array(base64)], { type: 'application/octet-stream' });
   // }
+
+  function getTimeStr(date) {
+    const year = date.getUTCFullYear();
+    const month = ('0' + (date.getUTCMonth() + 1)).slice(-2);
+    const day = ('0' + date.getUTCDate()).slice(-2);
+    const hours = ('0' + date.getUTCHours()).slice(-2);
+    const minutes = ('0' + date.getUTCMinutes()).slice(-2);
+    const seconds = ('0' + date.getUTCSeconds()).slice(-2);
+    return `${year}${month}${day}${hours}${minutes}${seconds}`;
+  }
 </script>
