@@ -26,21 +26,28 @@
 <button onclick="signHap()">签名</button><span id="progressHint"></span>
 
 <script src="https://cdn.jsdelivr.net/npm/jszip"></script>
-<script src="https://cjrtnc.leaningtech.com/4.2/loader.js"></script>
+<!-- <script src="https://cjrtnc.leaningtech.com/4.2/loader.js"></script> -->
 <!-- <script src="https://cjrtnc.leaningtech.com/3.0/cj3loader.js"></script> -->
 <!-- <script src="https://cjrtnc.leaningtech.com/2.3/loader.js"></script> -->
 
-<script>
+<script type="module">
+  // import * as asn1js from 'https://cdn.jsdelivr.net/npm/asn1js@3.0.6/+esm';
+  // import * as pkijs from 'https://cdn.jsdelivr.net/npm/pkijs@3.2.5/+esm';
+  import * as jsrsasign from 'https://cdn.jsdelivr.net/npm/jsrsasign@11.1.0/+esm';
+
   const csrFile = "-----BEGIN NEW CERTIFICATE REQUEST-----\nMIH+MIGkAgEAMBIxEDAOBgNVBAMMB2RlZmF1bHQwWTATBgcqhkjOPQIBBggqhkjO\nPQMBBwNCAAR1VIBWnhZckS1Xr/GvhEpgr+HpSdlP48szkRw5xes+5+D2pAXts0Or\nsXQ4Y0u/RIWqF7oF7tAtSt92rlhsGUSLoDAwLgYJKoZIhvcNAQkOMSEwHzAdBgNV\nHQ4EFgQUIHP+3xCgek7Vv5FaHLI4sMRIpVMwCgYIKoZIzj0EAwIDSQAwRgIhAPIs\n6WmMIQ+uLZAKEC4scBCNMXa2kZmlZcjFZo/L8S+6AiEAsbsz8jEJMXEL0SNXTAi3\nKSHU01xBcwv1Q2Oi5zRlxos=\n-----END NEW CERTIFICATE REQUEST-----";
   const p12Base64 = "MIIECwIBAzCCA8EGCSqGSIb3DQEHAaCCA7IEggOuMIIDqjCCAjoGCSqGSIb3DQEHBqCCAiswggInAgEAMIICIAYJKoZIhvcNAQcBMF8GCSqGSIb3DQEFDTBSMDEGCSqGSIb3DQEFDDAkBBCdTmEgtBxvOTX+9n4TAKrgAgJOIDAMBggqhkiG9w0CCQUAMB0GCWCGSAFlAwQBKgQQfKQ2yt2YyfKFpvoOTpoAsICCAbDwou30DZxuwZBAO41mDCWKytcsqR11o80oqFeLETtx+2ox/VEcjTtgVQ1BlxpUsKLqQUQw5ii/2yIaXVwAMBCRfbbu3D6Ltd2gFaYnsUCZlIUZ2mAeJvR6n6qh57UXWF94HuoZYdsbLWFDEK8TcTeDHdmsKvnbMw4UGwFHhLIUOQ3NGubmxrxMJHij8LeAdnwaQXX51OC2P8mSuDVvrexcAiYALnGBoTIfjZ3N8LwjdUR+pU2PRuEuthsDuRK8nzP5+wLuc2wh5wFU7utC5acerAWx1pB4uBXOSwd5nTkufxd/gCmLa3oMM8IVHdK9cr4ygLfZh+rLQRvSJKVQH5w4zNAvdgYZYMG+1sWmUFr4ul3Hlr6nz5ACfr8CyXhDSIt9r8TaGW/r0OaSR7rdQ/z0jaZVfp3cVrzzHUsjch0oeGpCl3bOwYnG0uth7RNCG/9SZEzSbPzyQe7Hkk+mpLu/7FxE6K/mtRgT+T0yWmABWfy0dpd5qlsh3T9k+jPyjo3vvzDv8WMkzb7uh1CjET7HrSGJ+jgrmBkGZxI4SRf48gwpqtTpbCh/xxOQvBPFHnIwggFoBgkqhkiG9w0BBwGgggFZBIIBVTCCAVEwggFNBgsqhkiG9w0BDAoBAqCB9zCB9DBfBgkqhkiG9w0BBQ0wUjAxBgkqhkiG9w0BBQwwJAQQqe5iktWgadtS0Utmte0HAQICTiAwDAYIKoZIhvcNAgkFADAdBglghkgBZQMEASoEEHurTSYsJqy7fq3cbNxAkEwEgZAkb/2AE4rhboaGyTFnPrTdUV7sV3na9rayFaCzTehnnGlhIKjjcd6Fc9U1h71pgOiGITQsCxR86GRsenrZaHjpz+4Rc/xgbhUgSV1WtIhPiBHewNNyC6ObtxMwJnbWYG2vS2cq1hb5iFVyLSynSvw4j1IpOUemCdnedGQVsP6ej4/vtC69l7P6vFjp9YC5+IcxRDAdBgkqhkiG9w0BCRQxEB4OAGQAZQBmAGEAdQBsAHQwIwYJKoZIhvcNAQkVMRYEFKYzJncFFDQb5B+oRJGbVy4krtmmMEEwMTANBglghkgBZQMEAgEFAAQg/jx8QAXgx4ujLx9flAjosCoFRs+7HIFEGkc43Kj40yMECHgv6uu9jsAZAgIIAA==";
+  const p12Pem = "-----BEGIN PRIVATE KEY-----\nMIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgBCsp9yrXDMGvvKib\nUddAWZEqNGZmyELWeaJM19FbjGmhRANCAAR1VIBWnhZckS1Xr/GvhEpgr+HpSdlP\n48szkRw5xes+5+D2pAXts0OrsXQ4Y0u/RIWqF7oF7tAtSt92rlhsGUSL\n-----END PRIVATE KEY-----";
 
   // const p12Blob = base64ToBlob(p12Base64);
   document.querySelector("#downloadCsr").href = URL.createObjectURL(new Blob([csrFile], { type: "text/plain" }));
 
-  (async () => {
-    await cheerpjInit({ version: 11, enableDebug: true });
-    cheerpjCreateConsole({});
-  })()
+  window.signHap = signHap;
+
+  // (async () => {
+  //   await cheerpjInit({ version: 11, enableDebug: true });
+  //   cheerpjCreateConsole({});
+  // })()
 
   async function autoBundleName() {
     const date = new Date();
@@ -60,6 +67,7 @@
 
   async function signHap() {
     try {
+      // input
       const bundleName = document.querySelector("#bundleNameInput").value.trim();
       console.log("bundleName: ", bundleName);
       if (!/^[a-zA-Z][a-zA-Z0-9_]*(\.[a-zA-Z][a-zA-Z0-9_]*)+$/.test(bundleName)) {
@@ -80,115 +88,65 @@
       const hapBlob = await hapEntry.async("blob");
       const hapLoad = await JSZip.loadAsync(hapBlob);
 
-      const configFile = hapLoad.file("config.json");
-      if (!configFile) return alert("config.json 不存在");
-
-      const configText = await configFile.async("text");
-      let config;
+      // 修改 config.json 中的包名
       try {
-        config = JSON.parse(configText);
-      } catch {
-        return alert("config.json 解析失败");
+        const config = JSON.parse(await (hapLoad.file("config.json")).async("text"));
+        config.app.bundleName = bundleName;
+        hapLoad.file("config.json", JSON.stringify(config));
+      } catch (e) {
+        console.error(e);
+        return alert("config.json 解析失败: " + e.message);
       }
-
-      // 修改 config.json
-      if (!config.app) config.app = {};
-      config.app.bundleName = bundleName;
-      hapLoad.file("config.json", JSON.stringify(config));
 
       // const modifiedHapUint8Array = await hapLoad.generateAsync({
       //   type: "uint8array",
       //   compression: "STORE"
       // });
 
-      const encoder = new TextEncoder();
-      const parts = [];
-
-      // 写入 magic byte
-      const MAGIC_BYTE = 0xBE;
-      parts.push(Uint8Array.from([MAGIC_BYTE]));
-
-      // 写入 bundleName 长度（big endian int）+ 内容
-      const bundleNameBytes = encoder.encode(bundleName);
-      parts.push(makeInt32BE(bundleNameBytes.length));
-      parts.push(bundleNameBytes);
-
-      let fileCount = 0;
-      const sortedEntries = Object.entries(hapLoad.files)
-        .filter(([path, entry]) => !entry.dir)
-        .sort((a, b) => {
-          const depthA = a[0].split("/").length;
-          const depthB = b[0].split("/").length;
-          if (depthA !== depthB) return depthA - depthB;
-          return a[0].localeCompare(b[0]);
-        });
-
-      for (const [fullPath, zipEntry] of sortedEntries) {
-        console.log(fullPath);
-
-        if (zipEntry.dir) continue;
-
-        const content = await zipEntry.async("uint8array");
-        const fileName = fullPath.split("/").pop();
-        let relPath = "/" + fullPath.substring(0, fullPath.lastIndexOf("/"));
-        if (relPath === "/") relPath = "";
-
-        const fileNameBytes = encoder.encode(fileName);
-        const relPathBytes = encoder.encode(relPath);
-
-        // 文件名长度 + 内容
-        parts.push(makeInt32BE(fileNameBytes.length));
-        parts.push(fileNameBytes);
-
-        // 相对路径长度 + 内容
-        parts.push(makeInt32BE(relPathBytes.length));
-        parts.push(relPathBytes);
-
-        // 内容长度（8 字节） + 内容
-        parts.push(makeInt64BE(content.length));
-        parts.push(content);
-
-        fileCount++;
-      }
-
-      console.log(`写入了 ${fileCount} 个文件`);
-
-      const unsignedBinUint8Array = new Uint8Array(await (new Blob(parts, { type: "application/octet-stream" })).arrayBuffer());
+      const unsignedBinUint8Array = await hapToBin(hapLoad);
       const p12Uint8Array = base64ToUint8Array(p12Base64);
       const p7bUint8Array = new Uint8Array(await p7bFile.arrayBuffer());
       const cerUint8Array = new Uint8Array(await cerFile.arrayBuffer());
 
-      // 调用 cheerpj 进行签名
-      // await cheerpOSAddStringFile("/str/unsigned.hap", modifiedHapUint8Array);
-      await cheerpOSAddStringFile("/str/unsigned.bin", unsignedBinUint8Array);
-      await cheerpOSAddStringFile("/str/p12.p12", p12Uint8Array);
-      await cheerpOSAddStringFile("/str/p7b.p7b", p7bUint8Array);
-      await cheerpOSAddStringFile("/str/cer.cer", cerUint8Array);
-      // await cheerpjAddStringFile("/str/unsigned.bin", unsignedBinUint8Array);
-      // await cheerpjAddStringFile("/str/p12.p12", p12Uint8Array);
-      // await cheerpjAddStringFile("/str/p7b.p7b", p7bUint8Array);
-      // await cheerpjAddStringFile("/str/cer.cer", cerUint8Array);
+      // // 调用 cheerpj 进行签名
+      // // await cheerpOSAddStringFile("/str/unsigned.hap", modifiedHapUint8Array);
+      // await cheerpOSAddStringFile("/str/unsigned.bin", unsignedBinUint8Array);
+      // await cheerpOSAddStringFile("/str/p12.p12", p12Uint8Array);
+      // await cheerpOSAddStringFile("/str/p7b.p7b", p7bUint8Array);
+      // await cheerpOSAddStringFile("/str/cer.cer", cerUint8Array);
+      // // await cheerpjAddStringFile("/str/unsigned.bin", unsignedBinUint8Array);
+      // // await cheerpjAddStringFile("/str/p12.p12", p12Uint8Array);
+      // // await cheerpjAddStringFile("/str/p7b.p7b", p7bUint8Array);
+      // // await cheerpjAddStringFile("/str/cer.cer", cerUint8Array);
 
-      document.querySelector("#progressHint").innerText = "正在签名，请等待...";
-      const consoleLog = console.log;
-      let fail;
-      console.log = (...args) => {
-        consoleLog(...args);
-        if (/INFO - sign-app failed/.test(args.map(a => String(a)).join(" "))) {
-          fail = true;
-        }
-      };
+      // document.querySelector("#progressHint").innerText = "正在签名，请等待...";
+      // const consoleLog = console.log;
+      // let fail;
+      // console.log = (...args) => {
+      //   consoleLog(...args);
+      //   if (/INFO - sign-app failed/.test(args.map(a => String(a)).join(" "))) {
+      //     fail = true;
+      //   }
+      // };
 
-      await cheerpjRunJar("/app/hap-sign-tool.jar", "sign-app", "-mode", "localSign", "-keyAlias", "default", "-keyPwd", "default", "-appCertFile", "/str/cer.cer", "-profileFile", "/str/p7b.p7b", "-inFile", "/str/unsigned.bin", "-inForm", "bin", "-signAlg", "SHA256withECDSA", "-keystoreFile", "/str/p12.p12", "-keystorePwd", "default", "-outFile", "/files/signed.bin", "-signCode", "0");
+      // await cheerpjRunJar("/app/hap-sign-tool.jar", "sign-app", "-mode", "localSign", "-keyAlias", "default", "-keyPwd", "default", "-appCertFile", "/str/cer.cer", "-profileFile", "/str/p7b.p7b", "-inFile", "/str/unsigned.bin", "-inForm", "bin", "-signAlg", "SHA256withECDSA", "-keystoreFile", "/str/p12.p12", "-keystorePwd", "default", "-outFile", "/files/signed.bin", "-signCode", "0");
 
-      document.querySelector("#progressHint").innerText = "";
-      console.log = consoleLog;
-      if (fail) {
-        throw Error("hap-sign.jar 执行出错");
-        return;
-      }
+      // document.querySelector("#progressHint").innerText = "";
+      // console.log = consoleLog;
+      // if (fail) {
+      //   throw Error("hap-sign.jar 执行出错");
+      //   return;
+      // }
 
-      const signedBinBlob = await cjFileBlob("/files/signed.bin");
+      // const signedBinBlob = await cjFileBlob("/files/signed.bin");
+
+      const signedBinUint8Array = await signBin({
+        unsignedBinUint8Array,
+        p7bUint8Array,
+        p12Pem,
+        cerFile
+      });
+      const signedBinBlob = new Blob([signedBinUint8Array], { type: 'application/octet-stream' });
 
       const signedHap = new JSZip();
       signedHap.file("signed.bin", signedBinBlob, { binary: true, compression: "STORE" });
@@ -203,6 +161,241 @@
       alert("签名失败：" + e.message);
       throw e;
     }
+  }
+
+  async function hapToBin(hapLoad) {
+    const bundleName = JSON.parse(await (hapLoad.file("config.json")).async("text")).app.bundleName;
+
+    const encoder = new TextEncoder();
+    const parts = [];
+
+    // 写入 magic byte
+    const MAGIC_BYTE = 0xBE;
+    parts.push(Uint8Array.from([MAGIC_BYTE]));
+
+    // 写入 bundleName 长度（big endian int）+ 内容
+    const bundleNameBytes = encoder.encode(bundleName);
+    parts.push(makeInt32BE(bundleNameBytes.length));
+    parts.push(bundleNameBytes);
+
+    let fileCount = 0;
+    const sortedEntries = Object.entries(hapLoad.files)
+      .filter(([path, entry]) => !entry.dir)
+      .sort((a, b) => {
+        const depthA = a[0].split("/").length;
+        const depthB = b[0].split("/").length;
+        if (depthA !== depthB) return depthA - depthB;
+        return a[0].localeCompare(b[0]);
+      });
+
+    for (const [fullPath, zipEntry] of sortedEntries) {
+      console.log(fullPath);
+
+      if (zipEntry.dir) continue;
+
+      const content = await zipEntry.async("uint8array");
+      const fileName = fullPath.split("/").pop();
+      let relPath = "/" + fullPath.substring(0, fullPath.lastIndexOf("/"));
+      if (relPath === "/") relPath = "";
+
+      const fileNameBytes = encoder.encode(fileName);
+      const relPathBytes = encoder.encode(relPath);
+
+      // 文件名长度 + 内容
+      parts.push(makeInt32BE(fileNameBytes.length));
+      parts.push(fileNameBytes);
+
+      // 相对路径长度 + 内容
+      parts.push(makeInt32BE(relPathBytes.length));
+      parts.push(relPathBytes);
+
+      // 内容长度（8 字节） + 内容
+      parts.push(makeInt64BE(content.length));
+      parts.push(content);
+
+      fileCount++;
+    }
+
+    console.log(`写入了 ${fileCount} 个文件`);
+
+    return new Uint8Array(await (new Blob(parts, { type: "application/octet-stream" })).arrayBuffer());
+  }
+
+  async function signBin({ unsignedBinUint8Array, p7bUint8Array, p12Pem, cerFile }) {
+    const unsignedBinLen = unsignedBinUint8Array.length;
+    const p7bLen = p7bUint8Array.length;
+    let offset = unsignedBinLen + 8 + 8;
+    const proBlockByte = getBlockHead(0x02, 0x00, p7bLen, offset);
+    offset += p7bLen;
+    const signBlockByte = getBlockHead(0x00, 0x00, 0, offset);
+
+    const bytes = new Uint8Array(unsignedBinLen + 8 + 8 + p7bLen);
+    bytes.set([
+      ...unsignedBinUint8Array,
+      ...proBlockByte,
+      ...signBlockByte,
+      ...p7bUint8Array
+    ], 0);
+
+    const hashBytes = getByteContent(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)));
+    const outputChunk = await generateSignedData({ dataUint8Array: hashBytes, p12Pem, cerFile });
+
+    const bytes2 = new Uint8Array(unsignedBinLen + 8 + 8 + p7bLen + outputChunk.length);
+    bytes2.set([
+      ...bytes,
+      ...outputChunk
+    ], 0);
+
+    const size = bytes2.length - unsignedBinLen + 32;
+    const signHead = getSignHead(size);
+
+    const signedBin = new Uint8Array(signHead.length + bytes2.length);
+    signedBin.set([
+      ...bytes2,
+      ...signHead
+    ], 0);
+
+    return signedBin;
+  }
+
+  function getBlockHead(type, tag, length, offset) {
+    const bytes = new Uint8Array(8);
+    bytes.set([
+      type,
+      tag,
+      (length >> 8) & 0xff,
+      length & 0xff,
+      (offset >> 24) & 0xff,
+      (offset >> 16) & 0xff,
+      (offset >> 8) & 0xff,
+      offset & 0xff
+    ], 0);
+    return bytes;
+  }
+
+  function getByteContent(inBytes) {
+    const dataLen = inBytes.length;
+    const size = 8 + 8 + dataLen;
+    const outBytes = new Uint8Array(size);
+    outBytes.set([
+      ...stringToBytes("1000"),
+      (size >> 8) & 0xff,
+      size & 0xff,
+      0x00,
+      0x01,
+      0x00,
+      0x88,
+      0x00,
+      0x06,
+      (dataLen >> 24) & 0xff,
+      (dataLen >> 16) & 0xff,
+      (dataLen >> 8) & 0xff,
+      dataLen & 0xff,
+      ...inBytes
+    ], 0);
+    return outBytes;
+  }
+
+  function getSignHead(subBlockSize) {
+    const signHead = new Uint8Array(32);
+    signHead.set([
+      ...stringToBytes("hw signed app   "),
+      ...stringToBytes("1000"),
+      (subBlockSize >> 24) & 0xff,
+      (subBlockSize >> 16) & 0xff,
+      (subBlockSize >> 8) & 0xff,
+      subBlockSize & 0xff,
+      0x00, 0x00, 0x00, 0x02,
+      0x00, 0x00, 0x00, 0x00
+    ], 0);
+
+    return signHead;
+  }
+
+  async function generateSignedData({ dataUint8Array, p12Pem, cerFile }) {
+    console.log(`generateSignedData ${dataUint8Array}, p12: ${p12Pem}, cer: ${await cerFile.text()}`);
+
+    // 解密 P12 获取私钥
+    // const pkcs12KeyObj = jsrsasign.KEYUTIL.getKey(p12Pem);
+
+    // 读取 CER
+    const cerText = await cerFile.text();
+    const certs = sortCerts(cerText.trim().split(/(?=-----BEGIN CERTIFICATE-----)/).map(s => s.trim()));
+    // const certs = sortCerts(cerText.trim().split(/(?=-----BEGIN CERTIFICATE-----)/).map(s => s.trim())).map(pem => {
+    //   const x = new jsrsasign.X509();
+    //   x.readCertPEM(pem);
+    //   return x;
+    // });
+
+    // 构造 SignedData
+    const signedData = new jsrsasign.KJUR.asn1.cms.SignedData({
+      version: 1,
+      hashalgs: ["sha256"],
+      econtent: {
+        type: "data",
+        content: {
+          hex: uint8ArrayToHex(dataUint8Array)
+        }
+      },
+      certs: certs,
+      revinfos: { array: [] },
+      sinfos: [{
+        version: 1,
+        id: {
+          type: "isssn",
+          cert: certs[0]
+        },
+        hashalg: "sha256",
+        sattrs: {
+          array: [{
+            attr: "signingTime",
+            type: new jsrsasign.KJUR.asn1.cms.SigningTime(),
+          },
+          {
+            attr: "contentType",
+            type: "1.2.840.113549.1.7.1"
+          }, {
+            attr: "messageDigest",
+            hex: uint8ArrayToHex(new Uint8Array(await crypto.subtle.digest('SHA-256', dataUint8Array)))
+          }]
+        },
+        sigalg: "SHA256withECDSA",
+        signkey: p12Pem
+      }]
+    });
+
+    // 编码为 DER
+    const derHex = signedData.getContentInfoEncodedHex();
+    return Uint8Array.from(derHex.match(/.{2}/g).map(h => parseInt(h, 16)));
+  }
+
+  function sortCerts(certs) {
+    // 解析 subject issuer
+    const cert = certs.map(pem => {
+      const c = new jsrsasign.X509();
+      c.readCertPEM(pem);
+      console.log(`cert: subject=${c.getSubjectString()}, issuer=${c.getIssuerString()}`);
+      return {
+        pem,
+        subject: c.getSubjectString(),
+        issuer: c.getIssuerString()
+      };
+    });
+
+    // 找叶子证书
+    const leaf = cert.find(c => !cert.some(x => x.issuer === c.subject));
+    if (!leaf) throw new Error("找不到叶子证书");
+
+    // 排序
+    const ordered = [];
+    let current = leaf;
+    while (current) {
+      ordered.push(current.pem);
+      if (current.subject === current.issuer) break; // 根证书
+      current = cert.find(x => x.subject === current.issuer);
+    }
+
+    return ordered;
   }
 
   function makeInt32BE(num) {
@@ -225,6 +418,16 @@
       bytes[i] = binary.charCodeAt(i);
     }
     return bytes;
+  }
+
+  function stringToBytes(str) {
+    return new Uint8Array([...str].map(c => c.charCodeAt(0)));
+  }
+
+  function uint8ArrayToHex(uint8Array) {
+    return Array.from(uint8Array)
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('');
   }
 
   // function base64ToBlob(base64) {
