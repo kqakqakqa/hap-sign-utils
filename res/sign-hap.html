@@ -43,6 +43,7 @@
   document.querySelector("#downloadCsr").href = URL.createObjectURL(new Blob([csrFile], { type: "text/plain" }));
 
   window.signHap = signHap;
+  window.autoBundleName = autoBundleName;
 
   // (async () => {
   //   await cheerpjInit({ version: 11, enableDebug: true });
@@ -237,7 +238,7 @@
       ...p7bUint8Array
     ], 0);
 
-    const hashBytes = getByteContent(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)));
+    const hashBytes = getByteContent(await slicedSHA256(bytes));
     const outputChunk = await generateSignedData({ dataUint8Array: hashBytes, p12Pem, cerFile });
 
     const bytes2 = new Uint8Array(unsignedBinLen + 8 + 8 + p7bLen + outputChunk.length);
@@ -366,7 +367,7 @@
 
     // 编码为 DER
     const derHex = signedData.getContentInfoEncodedHex();
-    return Uint8Array.from(derHex.match(/.{2}/g).map(h => parseInt(h, 16)));
+    return hexToUint8Array(derHex);
   }
 
   function sortCerts(certs) {
@@ -396,6 +397,21 @@
     }
 
     return ordered;
+  }
+
+  async function slicedSHA256(bytes) {
+    const chunkSize = 4096;
+    const hashBuffer = new Uint8Array(Math.ceil(bytes.length / chunkSize) * 32);
+
+    // 分块计算 SHA256
+    for (let offset = 0; offset < bytes.length; offset += chunkSize) {
+      const chunk = bytes.subarray(offset, offset + chunkSize);
+      const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', chunk))
+      hashBuffer.set(digest, Math.floor(offset / chunkSize) * 32);
+    }
+
+    const totalDigest = await crypto.subtle.digest("SHA-256", hashBuffer);
+    return new Uint8Array(totalDigest);
   }
 
   function makeInt32BE(num) {
@@ -428,6 +444,10 @@
     return Array.from(uint8Array)
       .map(b => b.toString(16).padStart(2, '0'))
       .join('');
+  }
+
+  function hexToUint8Array(hex) {
+    return new Uint8Array(hex.match(/.{2}/g).map(h => parseInt(h, 16)));
   }
 
   // function base64ToBlob(base64) {
