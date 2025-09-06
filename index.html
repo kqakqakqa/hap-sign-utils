@@ -275,7 +275,9 @@
 
   async function autoBundleName() {
     const bundleName = "com.example.hapsign" + getTimeStr(new Date(new Date().getTime() + 8 * 3600 * 1000));
-    try { await navigator.clipboard.writeText(bundleName); } catch {
+    try {
+      await copyToClipboard(bundleName);
+    } catch {
       alert("复制失败");
       return;
     }
@@ -660,6 +662,26 @@
     const minutes = ('0' + date.getUTCMinutes()).slice(-2);
     const seconds = ('0' + date.getUTCSeconds()).slice(-2);
     return `${year}${month}${day}${hours}${minutes}${seconds}`;
+  }
+
+  async function copyToClipboard(text) {
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      execCommandCopyToClipboard();
+    }
+
+    function execCommandCopyToClipboard() {
+      let textArea = document.createElement("textArea");
+      // textArea.style.display = "none";
+      textArea.style.position = "fixed";
+      textArea.setAttribute("readonly", "readonly");
+      textArea.value = text;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand("Copy");
+      textArea.remove();
+    }
   }
 </script>
 
