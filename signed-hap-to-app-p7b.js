@@ -1,29 +1,18 @@
 import * as fs from "fs";
 import * as path from "path";
-import JSZip from "../../res/tools/node/node_modules/jszip/dist/jszip.js";
+import JSZip from "../lib/node/node_modules/jszip/dist/jszip.js";
 
-function readUInt32BE(buf) {
-  return (buf[0] << 24) | (buf[1] << 16) | (buf[2] << 8) | buf[3];
-}
-function readUInt16BE(buf, off) {
-  return (buf[off] << 8) | buf[off + 1];
-}
-function readInt32BE(buf, off) {
-  return (buf[off] << 24) | (buf[off + 1] << 16) | (buf[off + 2] << 8) | buf[off + 3];
-}
-function readUInt64BE(buf, off) {
-  const hi = readUInt32BE(Buffer.from([buf[off], buf[off + 1], buf[off + 2], buf[off + 3]]));
-  const lo = readUInt32BE(Buffer.from([buf[off + 4], buf[off + 5], buf[off + 6], buf[off + 7]]));
-  return hi * 2 ** 32 + lo;
-}
+main().catch(e => console.error(e));
 
 async function main() {
+
   const inPath = process.argv[2];
   if (!inPath) {
-    return console.error("usage: node unsign-hap.js <signed.hap>");
+    return console.error("usage: node signed-hap-to-app-p7b.js <signed.hap>");
   }
-  const inBuf = fs.readFileSync(inPath);
+
   // read zip, find signed.bin
+  const inBuf = fs.readFileSync(inPath);
   const inZip = await JSZip.loadAsync(inBuf).catch(() => null);
   let signedBinBuf;
   if (inZip) {
@@ -34,28 +23,24 @@ async function main() {
       signedBinBuf = Buffer.from(await signedFile.async("arraybuffer"));
     }
   }
+
   if (!signedBinBuf) return console.error("没有识别到 .bin 文件");
 
   // find signHead
-  let hasSignHead = false;
-  if (signedBinBuf.length < 32) {
-    console.warn(".bin 文件太小");
-  } else {
-    const signHead = Buffer.from(signedBinBuf.subarray(signedBinBuf.length - 32));
-    const signHeadStr = signHead.toString("ascii", 0, 16);
-    if (!signHeadStr.includes("hw signed app")) {
-      console.warn("signHead 格式不正确: ", signHeadStr.trim());
-    } else {
-      hasSignHead = true;
-    }
-  }
+  if (signedBinBuf.length < 32) return console.error(".bin 文件太小");
+
+  const signHead = Buffer.from(signedBinBuf.subarray(signedBinBuf.length - 32));
+
+  const signHeadStr = signHead.toString("ascii", 0, 20);
+  if (signHeadStr !== "hw signed app   1000") return console.error("signHead 格式不正确: ", signHeadStr);
+
   // drop signHead
-  const binBuf = Buffer.from(signedBinBuf.subarray(0, signedBinBuf.length - (hasSignHead ? 32 : 0)));
+  const binBuf = Buffer.from(signedBinBuf.subarray(0, signedBinBuf.length - 32));
 
   // find proBlock
   let proBlockPos = -1;
   for (let i = 1; i + 8 < binBuf.length; i++) {
-    if (binBuf[i] === 0x02 && binBuf[i + 1] === 0x00) {
+    if ((binBuf[i] === 0x02) || (binBuf[i] === 0x01) && binBuf[i + 1] === 0x00) {
       const offsetVal = readUInt32BE(Buffer.from([binBuf[i + 4], binBuf[i + 5], binBuf[i + 6], binBuf[i + 7]]));
       if (offsetVal - i === 16) {
         console.log(i, offsetVal)
@@ -146,4 +131,20 @@ async function main() {
   console.log("解析出", outP7bName);
 }
 
-main().catch(e => console.error(e));
+function readUInt32BE(buf) {
+  return (buf[0] << 24) | (buf[1] << 16) | (buf[2] << 8) | buf[3];
+}
+
+function readUInt16BE(buf, off) {
+  return (buf[off] << 8) | buf[off + 1];
+}
+
+function readInt32BE(buf, off) {
+  return (buf[off] << 24) | (buf[off + 1] << 16) | (buf[off + 2] << 8) | buf[off + 3];
+}
+
+function readUInt64BE(buf, off) {
+  const hi = readUInt32BE(Buffer.from([buf[off], buf[off + 1], buf[off + 2], buf[off + 3]]));
+  const lo = readUInt32BE(Buffer.from([buf[off + 4], buf[off + 5], buf[off + 6], buf[off + 7]]));
+  return hi * 2 ** 32 + lo;
+}

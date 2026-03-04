@@ -74,7 +74,7 @@ goto get_package_name
 
 :convert_bin
 echo 正在转换 裸hap 文件为 bin 文件...
-python "%~dp0res\hap-to-bin.py" "!unsignedHap!" "!tmpDir!\hap2bin.bin"
+python "%~dp0hap-to-bin.py" "!unsignedHap!" "!tmpDir!\hap2bin.bin"
 
 for %%f in ("!tmpDir!\*.bin") do set "unsignedBin=%%f"
 if not defined unsignedBin (
@@ -87,7 +87,7 @@ goto get_package_name
 
 :get_package_name
 echo 正在从 bin 文件读取包名...
-for /f "delims=" %%i in ('python "%~dp0res\read-bin-package-name.py" "!unsignedBin!"') do (
+for /f "delims=" %%i in ('python "%~dp0read-bin-package-name.py" "!unsignedBin!"') do (
   set "packageName=%%i"
 )
 if not defined packageName (
@@ -132,7 +132,7 @@ for %%f in ("%inputFile%") do set "signedHapFile=!hapFolder!!packageName!-signed
 set "signedBinFile=!tmpDir!\!packageName!.bin"
 
 echo 正在签名 bin 文件...
-java -jar "%~dp0..\res\hap-sign-tool.jar" sign-app ^
+java -jar "%~dp0..\lib\hap-sign-tool.jar" sign-app ^
 -mode localSign ^
 -keyAlias !keyAlias! ^
 -keyPwd !keyPwd! ^
