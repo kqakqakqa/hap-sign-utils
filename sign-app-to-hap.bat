@@ -74,7 +74,7 @@ goto get_package_name
 
 :convert_bin
 echo 正在转换 裸hap 文件为 bin 文件...
-python "%~dp0hap-to-bin.py" "!unsignedHap!" "!tmpDir!\hap2bin.bin"
+python "%~dp0build-hap-to-bin.py" "!unsignedHap!" "!tmpDir!\hap2bin.bin"
 
 for %%f in ("!tmpDir!\*.bin") do set "unsignedBin=%%f"
 if not defined unsignedBin (

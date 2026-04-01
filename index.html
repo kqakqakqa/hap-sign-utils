@@ -302,14 +302,10 @@
   import * as jsrsasign from "https://cdn.jsdelivr.net/npm/jsrsasign@11.1.0/+esm";
   import JSZip from "https://cdn.jsdelivr.net/npm/jszip@3.10.1/+esm";
 
-  const p12Base64 = "MIIECwIBAzCCA8EGCSqGSIb3DQEHAaCCA7IEggOuMIIDqjCCAjoGCSqGSIb3DQEHBqCCAiswggInAgEAMIICIAYJKoZIhvcNAQcBMF8GCSqGSIb3DQEFDTBSMDEGCSqGSIb3DQEFDDAkBBCdTmEgtBxvOTX+9n4TAKrgAgJOIDAMBggqhkiG9w0CCQUAMB0GCWCGSAFlAwQBKgQQfKQ2yt2YyfKFpvoOTpoAsICCAbDwou30DZxuwZBAO41mDCWKytcsqR11o80oqFeLETtx+2ox/VEcjTtgVQ1BlxpUsKLqQUQw5ii/2yIaXVwAMBCRfbbu3D6Ltd2gFaYnsUCZlIUZ2mAeJvR6n6qh57UXWF94HuoZYdsbLWFDEK8TcTeDHdmsKvnbMw4UGwFHhLIUOQ3NGubmxrxMJHij8LeAdnwaQXX51OC2P8mSuDVvrexcAiYALnGBoTIfjZ3N8LwjdUR+pU2PRuEuthsDuRK8nzP5+wLuc2wh5wFU7utC5acerAWx1pB4uBXOSwd5nTkufxd/gCmLa3oMM8IVHdK9cr4ygLfZh+rLQRvSJKVQH5w4zNAvdgYZYMG+1sWmUFr4ul3Hlr6nz5ACfr8CyXhDSIt9r8TaGW/r0OaSR7rdQ/z0jaZVfp3cVrzzHUsjch0oeGpCl3bOwYnG0uth7RNCG/9SZEzSbPzyQe7Hkk+mpLu/7FxE6K/mtRgT+T0yWmABWfy0dpd5qlsh3T9k+jPyjo3vvzDv8WMkzb7uh1CjET7HrSGJ+jgrmBkGZxI4SRf48gwpqtTpbCh/xxOQvBPFHnIwggFoBgkqhkiG9w0BBwGgggFZBIIBVTCCAVEwggFNBgsqhkiG9w0BDAoBAqCB9zCB9DBfBgkqhkiG9w0BBQ0wUjAxBgkqhkiG9w0BBQwwJAQQqe5iktWgadtS0Utmte0HAQICTiAwDAYIKoZIhvcNAgkFADAdBglghkgBZQMEASoEEHurTSYsJqy7fq3cbNxAkEwEgZAkb/2AE4rhboaGyTFnPrTdUV7sV3na9rayFaCzTehnnGlhIKjjcd6Fc9U1h71pgOiGITQsCxR86GRsenrZaHjpz+4Rc/xgbhUgSV1WtIhPiBHewNNyC6ObtxMwJnbWYG2vS2cq1hb5iFVyLSynSvw4j1IpOUemCdnedGQVsP6ej4/vtC69l7P6vFjp9YC5+IcxRDAdBgkqhkiG9w0BCRQxEB4OAGQAZQBmAGEAdQBsAHQwIwYJKoZIhvcNAQkVMRYEFKYzJncFFDQb5B+oRJGbVy4krtmmMEEwMTANBglghkgBZQMEAgEFAAQg/jx8QAXgx4ujLx9flAjosCoFRs+7HIFEGkc43Kj40yMECHgv6uu9jsAZAgIIAA==";
   const p12Pem = "-----BEGIN PRIVATE KEY-----\nMIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgBCsp9yrXDMGvvKib\nUddAWZEqNGZmyELWeaJM19FbjGmhRANCAAR1VIBWnhZckS1Xr/GvhEpgr+HpSdlP\n48szkRw5xes+5+D2pAXts0OrsXQ4Y0u/RIWqF7oF7tAtSt92rlhsGUSL\n-----END PRIVATE KEY-----";
   // https://pki.consumer.huawei.com/ca#/
   const cerRoot = "-----BEGIN CERTIFICATE-----\nMIICGjCCAaGgAwIBAgIIShhpn519jNAwCgYIKoZIzj0EAwMwUzELMAkGA1UEBhMC\nQ04xDzANBgNVBAoMBkh1YXdlaTETMBEGA1UECwwKSHVhd2VpIENCRzEeMBwGA1UE\nAwwVSHVhd2VpIENCRyBSb290IENBIEcyMB4XDTIwMDMxNjAzMDQzOVoXDTQ5MDMx\nNjAzMDQzOVowUzELMAkGA1UEBhMCQ04xDzANBgNVBAoMBkh1YXdlaTETMBEGA1UE\nCwwKSHVhd2VpIENCRzEeMBwGA1UEAwwVSHVhd2VpIENCRyBSb290IENBIEcyMHYw\nEAYHKoZIzj0CAQYFK4EEACIDYgAEWidkGnDSOw3/HE2y2GHl+fpWBIa5S+IlnNrs\nGUvwC1I2QWvtqCHWmwFlFK95zKXiM8s9yV3VVXh7ivN8ZJO3SC5N1TCrvB2lpHMB\nwcz4DA0kgHCMm/wDec6kOHx1xvCRo0IwQDAOBgNVHQ8BAf8EBAMCAQYwDwYDVR0T\nAQH/BAUwAwEB/zAdBgNVHQ4EFgQUo45a9Vq8cYwqaiVyfkiS4pLcIAAwCgYIKoZI\nzj0EAwMDZwAwZAIwMypeB7P0IbY7c6gpWcClhRznOJFj8uavrNu2PIoz9KIqr3jn\nBlBHJs0myI7ntYpEAjBbm8eDMZY5zq5iMZUC6H7UzYSix4Uy1YlsLVV738PtKP9h\nFTjgDHctXJlC5L7+ZDY=\n-----END CERTIFICATE-----\n-----BEGIN CERTIFICATE-----\nMIIDATCCAoigAwIBAgIIXmuDXbWpOB8wCgYIKoZIzj0EAwMwUzELMAkGA1UEBhMC\nQ04xDzANBgNVBAoMBkh1YXdlaTETMBEGA1UECwwKSHVhd2VpIENCRzEeMBwGA1UE\nAwwVSHVhd2VpIENCRyBSb290IENBIEcyMB4XDTIwMDcwOTAyMDQyNFoXDTMwMDcw\nNzAyMDQyNFowYjELMAkGA1UEBgwCQ04xDzANBgNVBAoMBkh1YXdlaTETMBEGA1UE\nCwwKSHVhd2VpIENCRzEtMCsGA1UEAwwkSHVhd2VpIENCRyBEZXZlbG9wZXIgUmVs\nYXRpb25zIENBIEcyMHYwEAYHKoZIzj0CAQYFK4EEACIDYgAE65LdoIZh1hlpZ2gP\nbJ6gPhHsvYSRe22KETgdqeVeYnrbRHI9wsPT6RGYS+pU4mPl6wxzgDMqN6SY/BoZ\nluhkE1PzaHoPoNIWIq0O33hpyKyyYwAacIUEjYurkw1E9r9no4IBGDCCARQwHwYD\nVR0jBBgwFoAUo45a9Vq8cYwqaiVyfkiS4pLcIAAwHQYDVR0OBBYEFNtek7Ij6NDk\n/nF6Zumkc0dbf/NeMEYGA1UdIAQ/MD0wOwYEVR0gADAzMDEGCCsGAQUFBwIBFiVo\ndHRwOi8vY3BraS1jYXdlYi5odWF3ZWkuY29tL2Nwa2kvY3BzMBIGA1UdEwEB/wQI\nMAYBAf8CAQAwDgYDVR0PAQH/BAQDAgEGMGYGA1UdHwRfMF0wW6BZoFeGVWh0dHA6\nLy9jcGtpLWNhd2ViLmh1YXdlaS5jb20vY3BraS9zZXJ2bGV0L2NybEZpbGVEb3du\nLmNybD9jZXJ0eXBlPTEwJi9yb290X2cyX2NybC5jcmwwCgYIKoZIzj0EAwMDZwAw\nZAIwWO1X5q2MdfpR1Q237GpUHGbL1C13rGyFg2p3AYo44FpZ2/A9ss0wOHKM4KDl\nZPqdAjBLkf8NPZy7KVog98+iCTLq35DJ2ZVxkCxknA9YhiHVyXf4HPm4JlT7rW7o\nQ+FzM3c=\n-----END CERTIFICATE-----\n"
   const pubKey = "-----BEGIN PUBLIC KEY-----\r\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEdVSAVp4WXJEtV6/xr4RKYK/h6UnZ\r\nT+PLM5EcOcXrPufg9qQF7bNDq7F0OGNLv0SFqhe6Be7QLUrfdq5YbBlEiw==\r\n-----END PUBLIC KEY-----\r\n";
-
-  // const p12Blob = base64ToBlob(p12Base64);
-  const p12Uint8Array = base64ToUint8Array(p12Base64);
 
   window.signHap = signHap;
   window.autoBundleName = autoBundleName;
@@ -504,12 +500,12 @@
   async function signBin({ unsignedBinUint8Array, p7bUint8Array, p12Pem, cerStr, signTimeStr }) {
     const unsignedBinLen = unsignedBinUint8Array.length;
     const p7bLen = p7bUint8Array.length;
-    let offset = unsignedBinLen + 8 + 8;
-    const proBlockByte = getBlockHead(0x02, 0x00, p7bLen, offset);
-    offset += p7bLen;
-    const signBlockByte = getBlockHead(0x00, 0x00, 0, offset);
+    const offsetProBlock = unsignedBinLen + 8 + 8;
+    const offsetSignBlock = offsetProBlock + p7bLen;
+    const proBlockByte = getBlockHead(0x02, 0x00, p7bLen, offsetProBlock);
+    const signBlockByte = getBlockHead(0x00, 0x00, 0, offsetSignBlock);
 
-    const bytes = new Uint8Array(unsignedBinLen + 8 + 8 + p7bLen);
+    const bytes = new Uint8Array(offsetSignBlock);
     bytes.set([
       ...unsignedBinUint8Array,
       ...proBlockByte,
@@ -520,7 +516,7 @@
     const hashBytes = getByteContent(await slicedSHA256(bytes));
     const outputChunk = await generateSignedData({ dataUint8Array: hashBytes, p12Pem, cerStr, signTimeStr });
 
-    const bytes2 = new Uint8Array(unsignedBinLen + 8 + 8 + p7bLen + outputChunk.length);
+    const bytes2 = new Uint8Array(offsetSignBlock + outputChunk.length);
     bytes2.set([
       ...bytes,
       ...outputChunk
@@ -696,16 +692,6 @@
     return new Uint8Array(buffer);
   }
 
-  function base64ToUint8Array(base64) {
-    const binary = atob(base64); // base64 → 二进制字符串
-    const len = binary.length;
-    const bytes = new Uint8Array(len);
-    for (let i = 0; i < len; i++) {
-      bytes[i] = binary.charCodeAt(i);
-    }
-    return bytes;
-  }
-
   function stringToBytes(str) {
     return new Uint8Array([...str].map(c => c.charCodeAt(0)));
   }
@@ -719,10 +705,6 @@
   function hexToUint8Array(hex) {
     return new Uint8Array(hex.match(/.{2}/g).map(h => parseInt(h, 16)));
   }
-
-  // function base64ToBlob(base64) {
-  //   return new Blob([base64ToUint8Array(base64)], { type: "application/octet-stream" });
-  // }
 
   function getTimeStr(date = new Date(new Date().getTime() + 8 * 3600 * 1000)) {
     const year = date.getUTCFullYear();

@@ -1,6 +1,6 @@
-import * as fs from "fs";
-import * as path from "path";
-import JSZip from "../lib/node/node_modules/jszip/dist/jszip.js";
+import fs from "fs";
+import path from "path";
+import JSZip from "jszip";
 
 main().catch(e => console.error(e));
 
