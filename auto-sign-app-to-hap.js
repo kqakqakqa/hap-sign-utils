@@ -26,8 +26,14 @@ if (isFtp) {
 
 async function handleSign() {
   try {
-    if (!fs.existsSync(appPath)) return;
-    if (fs.statSync(appPath).size === 0) return;
+    if (!fs.existsSync(appPath)) {
+      console.log("文件不存在", appPath);
+      return;
+    }
+    if (fs.statSync(appPath).size === 0) {
+      console.log("文件大小为 0");
+      return;
+    }
 
     const appBuffer = fs.readFileSync(appPath);
     const p7bBuffer = fs.readFileSync(p7bPath);
