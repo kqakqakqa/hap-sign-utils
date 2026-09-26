@@ -506,30 +506,21 @@
     const signBlockByte = getBlockHead(0x00, 0x00, 0, offsetSignBlock);
 
     const bytes = new Uint8Array(offsetSignBlock);
-    bytes.set([
-      ...unsignedBinUint8Array,
-      ...proBlockByte,
-      ...signBlockByte,
-      ...p7bUint8Array
-    ], 0);
+    bytes.set(unsignedBinUint8Array, 0);
+    bytes.set(proBlockByte, unsignedBinLen);
+    bytes.set(signBlockByte, unsignedBinLen + 8);
+    bytes.set(p7bUint8Array, unsignedBinLen + 8 + 8);
 
     const hashBytes = getByteContent(await slicedSHA256(bytes));
     const outputChunk = await generateSignedData({ dataUint8Array: hashBytes, p12Pem, cerStr, signTimeStr });
 
-    const bytes2 = new Uint8Array(offsetSignBlock + outputChunk.length);
-    bytes2.set([
-      ...bytes,
-      ...outputChunk
-    ], 0);
-
-    const size = bytes2.length - unsignedBinLen + 32;
+    const size = offsetSignBlock + outputChunk.length - unsignedBinLen + 32;
     const signHead = getSignHead(size);
 
-    const signedBin = new Uint8Array(signHead.length + bytes2.length);
-    signedBin.set([
-      ...bytes2,
-      ...signHead
-    ], 0);
+    const signedBin = new Uint8Array(offsetSignBlock + outputChunk.length + signHead.length);
+    signedBin.set(bytes, 0);
+    signedBin.set(outputChunk, offsetSignBlock);
+    signedBin.set(signHead, offsetSignBlock + outputChunk.length);
 
     return signedBin;
   }
