@@ -4,292 +4,544 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>image2bin</title>
+  <title>图片 / BIN 转换</title>
 </head>
 
 <body>
-  <h1>图片转bin</h1>
+  <main class="tool-card">
+    <header>
+      <p class="eyebrow">HMLW IMAGE TOOL</p>
+      <h1>图片与 BIN 转换</h1>
+      <p class="subtitle">拖入一个或多个文件，工具会自动识别格式并生成预览。</p>
+    </header>
 
-  <div class="items-wrapper">
-    <div class="preset" data-w="408" data-h="480">FIT3,4 D2</div>
-    <div class="preset" data-w="466" data-h="466">GT3,4,5,6,Runner,Cyber</div>
-    <div class="preset" data-w="336" data-h="480">FIT2</div>
-    <div class="preset" data-w="454" data-h="454">GT2 GS3 GSPro</div>
-    <div class="preset" data-w="390" data-h="390">GT2(42mm)</div>
-    <div class="preset" data-w="280" data-h="456">D</div>
-  </div>
+    <section class="upload-area" id="dropZone" tabindex="0" role="button" aria-label="选择或拖入图片文件">
+      <input id="fileInput" type="file" accept="image/*,.bin" hidden multiple />
+      <div class="upload-mark">＋</div>
+      <strong>拖入文件到这里</strong>
+      <span>或点击选择 PNG / BIN 文件</span>
+    </section>
 
-  <div class="items-wrapper">
-    <input id="width" type="number" placeholder="宽度 (px)" />
-    <input id="height" type="number" placeholder="高度 (px)" />
-  </div>
+    <section class="settings">
+      <div class="section-title">PNG 转 BIN 设置</div>
+      <div class="presets" aria-label="尺寸预设">
+        <button class="preset" data-w="408" data-h="480">FIT3+ D2</button>
+        <button class="preset" data-w="466" data-h="466">GT3+ Runner Cyber</button>
+        <button class="preset" data-w="336" data-h="480">FIT2</button>
+        <button class="preset" data-w="454" data-h="454">GT2 GS3 GSPro</button>
+        <button class="preset" data-w="390" data-h="390">GT2(42mm)</button>
+        <button class="preset" data-w="280" data-h="456">D</button>
+      </div>
+      <div class="settings-row">
+        <label>尺寸 <input id="width" type="number" min="1" placeholder="宽" /></label>
+        <span>×</span>
+        <label><span class="sr-only">高度</span><input id="height" type="number" min="1" placeholder="高" /></label>
+        <label class="mode-label">缩放 <select id="fitMode">
+            <option value="original">原尺寸</option>
+            <option value="contain" selected>适应</option>
+            <option value="contain-circle">适应（圆形）</option>
+            <option value="fill">填充</option>
+            <option value="stretch">拉伸</option>
+            <option value="center">居中</option>
+            <option value="repeat">平铺</option>
+          </select></label>
+      </div>
+    </section>
 
-  <div class="items-wrapper fitMode-wrapper">
-    <label for="fitMode">缩放方式：</label>
-    <select id="fitMode">
-      <option value="original">不缩放</option>
-      <option value="contain" selected>适应</option>
-      <option value="contain-circle">适应（圆形）</option>
-      <option value="fill">填充</option>
-      <option value="stretch">拉伸</option>
-      <option value="center">居中</option>
-      <option value="repeat">平铺</option>
-    </select>
-  </div>
+    <section class="list-section">
+      <div class="list-heading">
+        <div><span class="section-title">文件列表</span><span id="fileCount" class="count">0 个文件</span></div>
+        <div class="toolbar">
+          <button id="downloadAllBin" class="btn btn-light" disabled>全部下载 BIN</button>
+          <button id="downloadAllPng" class="btn btn-light" disabled>全部下载 PNG</button>
+          <button id="clearAll" class="btn btn-danger" disabled>全部清除</button>
+        </div>
+      </div>
+      <div id="fileList" class="file-list">
+        <div id="emptyState" class="empty-state">还没有文件，拖入图片开始转换。</div>
+      </div>
+    </section>
 
-  <button id="fileCard" type="button"> 选择图片</button>
-  <input id="fileInput" type="file" accept="image/*" hidden multiple />
-  <div id="fileInfo">未选择文件</div>
-
-  <button id="convertBtn" type="button" disabled>转换并下载</button>
-
-  <div id="canvasList"></div>
-
-  <template id="canvasTemplate">
-    <canvas width="256" height="256" style="display: none;"></canvas>
-  </template>
-
+    <p id="message" class="message" aria-live="polite"></p>
+  </main>
 
   <style>
+    :root {
+      color-scheme: light;
+      --blue: #0066ff;
+      --ink: #1f2937;
+      --muted: #6b7280;
+      --line: #e5e7eb;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
     body {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 1rem;
-      font-family: sans-serif;
-      margin: 2rem;
+      margin: 0;
+      min-height: 100vh;
+      padding: 32px 16px;
+      background: #f5f7fa;
+      color: var(--ink);
+      font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
     }
 
-    canvas {
-      display: block;
-      border: 2px solid #999;
-      background: repeating-conic-gradient(#ccc 0 25%, #fff 0 50%) 50% / 1rem 1rem;
-      max-width: 40rem;
+    button,
+    input,
+    select {
+      font: inherit;
     }
 
-    #canvasList {
+    button {
+      cursor: pointer;
+    }
+
+    .tool-card {
+      width: min(900px, 100%);
+      margin: 0 auto;
+      padding: 28px;
+      border-radius: 12px;
+      background: #f8f9fa;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, .1);
+    }
+
+    header {
+      margin-bottom: 24px;
+    }
+
+    .eyebrow {
+      margin: 0 0 8px;
+      color: var(--blue);
+      font: 700 12px/1 monospace;
+      letter-spacing: .12em;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(25px, 4vw, 34px);
+      letter-spacing: -.03em;
+    }
+
+    .subtitle {
+      margin: 8px 0 0;
+      color: var(--muted);
+    }
+
+    .upload-area {
+      display: grid;
+      justify-items: center;
+      gap: 6px;
+      padding: 32px 20px;
+      border: 1px dashed #9ca3af;
+      border-radius: 10px;
+      background: #fff;
+      color: var(--muted);
+      outline: none;
+      transition: border-color .2s, background .2s;
+    }
+
+    .upload-area:hover,
+    .upload-area:focus-visible,
+    .upload-area.active {
+      border-color: var(--blue);
+      background: #f0f6ff;
+    }
+
+    .upload-mark {
+      color: var(--blue);
+      font-size: 30px;
+      line-height: 1;
+    }
+
+    .upload-area strong {
+      color: var(--ink);
+    }
+
+    .settings,
+    .list-section {
+      margin-top: 20px;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fff;
+    }
+
+    .section-title {
+      font-weight: 600;
+    }
+
+    .presets {
       display: flex;
       flex-wrap: wrap;
-      gap: 1rem;
-      justify-content: center;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .preset,
+    .btn {
+      min-height: 40px;
+      padding: 8px 12px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: #fff;
+      color: #4b5563;
+    }
+
+    .preset:hover,
+    .btn-light:hover {
+      border-color: var(--blue);
+      color: var(--blue);
+      background: #f0f6ff;
+    }
+
+    .settings-row {
+      display: flex;
+      flex-wrap: wrap;
       align-items: center;
+      gap: 8px;
+      margin-top: 14px;
+      color: var(--muted);
+    }
+
+    label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
     }
 
     input,
-    select,
-    button {
-      padding: 0.5rem;
-      font-size: 1rem;
+    select {
+      min-height: 40px;
+      padding: 7px 10px;
+      border: 1px solid #d1d5db;
+      border-radius: 7px;
+      background: #fff;
+      color: var(--ink);
     }
 
-    .items-wrapper {
+    input {
+      width: 90px;
+    }
+
+    .mode-label {
+      margin-left: 8px;
+    }
+
+    .list-heading {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .count {
+      margin-left: 8px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .toolbar {
       display: flex;
       flex-wrap: wrap;
-      gap: 0.5rem;
-      justify-content: center;
-      max-width: 100vmin;
+      justify-content: flex-end;
+      gap: 8px;
     }
 
-    .preset {
-      border: 1px solid #ccc;
+    .btn:disabled {
+      cursor: not-allowed;
+      opacity: .45;
+    }
+
+    .btn-danger {
+      border-color: #fecaca;
+      color: #dc2626;
+    }
+
+    .btn-danger:hover {
+      background: #fef2f2;
+    }
+
+    .file-list {
+      display: grid;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .file-row {
+      display: grid;
+      grid-template-columns: 76px minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 14px;
+      padding: 10px;
+      border: 1px solid var(--line);
       border-radius: 8px;
-      padding: 0.5rem 1rem;
-      cursor: pointer;
-      background: #fafafa;
-      /* transition: 0.2s; */
     }
 
-    .preset:hover {
-      background: #e6f0ff;
-      border-color: #66a3ff;
+    .preview {
+      display: grid;
+      place-items: center;
+      width: 76px;
+      height: 76px;
+      overflow: hidden;
+      border-radius: 6px;
+      background: repeating-conic-gradient(#e5e7eb 0 25%, #fff 0 50%) 50% / 14px 14px;
     }
 
-    .fitMode-wrapper label {
-      align-self: center;
+    .preview canvas {
+      display: block;
+      max-width: 100%;
+      max-height: 100%;
+      image-rendering: auto;
     }
 
-    #fileInfo {
-      color: #555;
+    .file-name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-weight: 600;
+    }
+
+    .file-meta {
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .file-actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 6px;
+    }
+
+    .file-actions button {
+      min-height: 36px;
+      padding: 6px 9px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #fff;
+      color: #4b5563;
+    }
+
+    .file-actions button:hover {
+      border-color: var(--blue);
+      color: var(--blue);
+    }
+
+    .empty-state {
+      padding: 28px 12px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .message {
+      min-height: 20px;
+      margin: 14px 2px 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .message.error {
+      color: #dc2626;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    @media (max-width: 640px) {
+      body {
+        padding: 16px 10px;
+      }
+
+      .tool-card {
+        padding: 18px 14px;
+      }
+
+      .list-heading {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .toolbar {
+        justify-content: flex-start;
+      }
+
+      .mode-label {
+        margin-left: 0;
+      }
+
+      .file-row {
+        grid-template-columns: 64px minmax(0, 1fr);
+      }
+
+      .preview {
+        width: 64px;
+        height: 64px;
+      }
+
+      .file-actions {
+        grid-column: 1 / -1;
+        justify-content: flex-start;
+      }
     }
   </style>
 
   <script>
-    const fileCard = document.getElementById("fileCard");
     const fileInput = document.getElementById("fileInput");
-    const fileInfo = document.getElementById("fileInfo");
-    const fitMode = document.getElementById("fitMode");
-    const convertBtn = document.getElementById("convertBtn");
-    const canvasList = document.getElementById("canvasList");
-    const canvasTemplate = document.getElementById("canvasTemplate");
+    const dropZone = document.getElementById("dropZone");
+    const fileList = document.getElementById("fileList");
+    const emptyState = document.getElementById("emptyState");
+    const fileCount = document.getElementById("fileCount");
+    const message = document.getElementById("message");
+    const items = [];
+    let importGeneration = 0;
+    let importQueue = Promise.resolve();
 
-    let items = []; // [{ imgName, img, canvas, ctx }]
+    dropZone.addEventListener("click", e => { if (e.target !== fileInput) fileInput.click(); });
+    dropZone.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fileInput.click(); } });
+    window.addEventListener("dragover", e => e.preventDefault());
+    window.addEventListener("drop", e => e.preventDefault());
+    fileInput.addEventListener("change", e => { addFiles([...e.target.files]); e.target.value = ""; });
+    ["dragenter", "dragover"].forEach(type => dropZone.addEventListener(type, e => { e.preventDefault(); dropZone.classList.add("active"); }));
+    ["dragleave", "drop"].forEach(type => dropZone.addEventListener(type, e => { e.preventDefault(); dropZone.classList.remove("active"); }));
+    dropZone.addEventListener("drop", e => addFiles([...e.dataTransfer.files]));
 
-    fileCard.addEventListener("click", () => fileInput.click());
+    document.querySelectorAll(".preset").forEach(button => button.addEventListener("click", () => {
+      document.getElementById("width").value = button.dataset.w;
+      document.getElementById("height").value = button.dataset.h;
+      refreshPngItems();
+    }));
+    ["width", "height", "fitMode"].forEach(id => document.getElementById(id).addEventListener("change", refreshPngItems));
+    document.getElementById("downloadAllBin").addEventListener("click", () => items.forEach(item => downloadBlob(item.binBlob, item.baseName + ".bin")));
+    document.getElementById("downloadAllPng").addEventListener("click", () => items.forEach(item => downloadBlob(item.pngBlob, item.baseName + ".png")));
+    document.getElementById("clearAll").addEventListener("click", () => { importGeneration++; items.length = 0; render(); setMessage(""); });
 
-    document.querySelectorAll(".preset").forEach(el => {
-      el.addEventListener("click", () => {
-        document.getElementById("width").value = el.dataset.w;
-        document.getElementById("height").value = el.dataset.h;
-      });
-    });
-
-    // 上传
-    fileInput.addEventListener("change", async (e) => {
-      const files = [...e.target.files];
-
-      items = [];
-      canvasList.innerHTML = "";
-      fileInfo.innerHTML = "未选择文件";
-
-      if (!files.length) return;
-
-      fileInfo.innerHTML = "已选择：";
-
-      for (const file of files) {
-        const url = URL.createObjectURL(file);
-        const img = new Image();
-        img.src = url;
-        await img.decode();
-        URL.revokeObjectURL(img.src);
-
-        fileInfo.innerHTML += `<br />${file.name} (${img.width}×${img.height})`;
-
-        const node = canvasTemplate.content.cloneNode(true);
-        const canvas = node.querySelector("canvas");
-        const ctx = canvas.getContext("2d");
-
-        canvasList.appendChild(node);
-
-        items.push({
-          imgName: file.name.replace(/\.[^.]+$/, ""),
-          img,
-          canvas,
-          ctx
-        });
-      }
-
-      convertBtn.disabled = false;
-    });
-
-    convertBtn.addEventListener("click", () => {
-      if (!items.length) return;
-
-      const width = parseInt(document.getElementById("width").value) || null;
-      const height = parseInt(document.getElementById("height").value) || null;
-      const mode = (width !== null && height !== null) ? fitMode.value : "original";
-
-      for (const it of items) {
-        const img = it.img;
-        const w = width || img.width;
-        const h = height || img.height;
-
-        it.canvas.width = w;
-        it.canvas.height = h;
-
-        const ctx = it.ctx;
-        ctx.clearRect(0, 0, w, h);
-        drawImageFit(ctx, img, w, h, mode);
-        it.canvas.style.display = "";
-
-        saveCanvasBin(it.canvas, it.imgName);
-      }
-    });
-
-    function drawImageFit(ctx, img, width, height, mode) {
-      const iw = img.width;
-      const ih = img.height;
-
-      switch (mode) {
-        case "fill": {
-          const scale = Math.max(width / iw, height / ih);
-          const sw = iw * scale;
-          const sh = ih * scale;
-          const x = (width - sw) / 2;
-          const y = (height - sh) / 2;
-          ctx.drawImage(img, x, y, sw, sh);
-          break;
-        }
-        case "contain": {
-          const scale = Math.min(width / iw, height / ih);
-          const sw = iw * scale;
-          const sh = ih * scale;
-          const x = (width - sw) / 2;
-          const y = (height - sh) / 2;
-          ctx.drawImage(img, x, y, sw, sh);
-          break;
-        }
-        case "contain-circle": {
-          const r = Math.min(width, height) / 2;
-          const scale = (2 * r) / Math.sqrt(iw * iw + ih * ih);
-          const sw = iw * scale;
-          const sh = ih * scale;
-          const x = (width - sw) / 2;
-          const y = (height - sh) / 2;
-          ctx.drawImage(img, x, y, sw, sh);
-          break;
-        }
-        case "stretch": {
-          ctx.drawImage(img, 0, 0, width, height);
-          break;
-        }
-        case "center": {
-          ctx.drawImage(img, (width - iw) / 2, (height - ih) / 2);
-          break;
-        }
-        case "repeat": {
-          const pattern = ctx.createPattern(img, "repeat");
-          ctx.fillStyle = pattern;
-          ctx.fillRect(0, 0, width, height);
-          break;
-        }
-        case "original": {
-          let w = iw;
-          let h = ih;
-          if (w > 2048 || h > 2048) {
-            const scale = Math.min(2048 / w, 2048 / h);
-            w = Math.round(w * scale);
-            h = Math.round(h * scale);
+    // 多次传入的文件追加到记录列表，清空后不再接收旧批次的结果。
+    function addFiles(files) {
+      const generation = importGeneration;
+      importQueue = importQueue.then(async () => {
+        const errors = [];
+        for (const [index, file] of files.entries()) {
+          if (generation !== importGeneration) return;
+          setMessage(`正在读取 ${index + 1}/${files.length}：${file.name}`);
+          await new Promise(resolve => setTimeout(resolve, 0));
+          try {
+            const item = await readFile(file);
+            if (generation !== importGeneration) return;
+            items.unshift(item);
+            render();
+          } catch (error) {
+            errors.push(`${file.name}：${error.message}`);
           }
-          ctx.canvas.width = w;
-          ctx.canvas.height = h;
-          ctx.drawImage(img, 0, 0, w, h);
-          break;
         }
-      }
+        if (generation === importGeneration) setMessage(errors.length ? errors.join("；") : `已添加 ${files.length} 个文件`, errors.length > 0);
+      });
     }
 
-    function saveCanvasBin(canvas, name) {
+    async function readFile(file) {
+      const buffer = await file.arrayBuffer();
+      const binImage = parseBinImage(buffer);
+      if (binImage) return createItem(file.name, "bin", binImage.canvas, binImage.width, binImage.height);
+      // 按内容识别 PNG 和 BIN，不要求文件扩展名正确。
+      const bytes = new Uint8Array(buffer);
+      const isPng = [137, 80, 78, 71, 13, 10, 26, 10].every((byte, index) => bytes[index] === byte);
+      if (isPng || file.type.startsWith("image/") || /\.(png|jpe?g|gif|webp|bmp)$/i.test(file.name)) {
+        const image = await loadImage(buffer, isPng ? "image/png" : file.type);
+        return createItem(file.name, "png", image, image.naturalWidth, image.naturalHeight);
+      }
+      throw new Error("无法识别为 PNG 或 BIN");
+    }
+
+    function createItem(fileName, type, source, width, height) {
+      const item = { originalName: fileName, type, baseName: fileName.replace(/\.[^.]+$/, ""), source, originalWidth: width, originalHeight: height, canvas: null, binBlob: null, pngBlob: null, error: null };
+      buildOutput(item);
+      return item;
+    }
+
+    function refreshPngItems() {
+      try {
+        items.filter(item => item.type === "png").forEach(buildOutput);
+        render();
+        setMessage("");
+      } catch (error) { setMessage(error.message, true); }
+    }
+
+    function buildOutput(item) {
+      const isBin = item.type === "bin";
+      const width = Number(document.getElementById("width").value) || item.originalWidth;
+      const height = Number(document.getElementById("height").value) || item.originalHeight;
+      if (!Number.isInteger(width) || !Number.isInteger(height) || width < 1 || height < 1 || width > 4096 || height > 4096) throw new Error("图片尺寸必须在 1 到 4096 像素之间");
+      const canvas = document.createElement("canvas");
+      canvas.width = isBin ? item.originalWidth : width;
+      canvas.height = isBin ? item.originalHeight : height;
       const ctx = canvas.getContext("2d");
-      const width = canvas.width;
-      const height = canvas.height;
-      const data = ctx.getImageData(0, 0, width, height).data;
-
-      const headerSize = 8;
-      const pixelSize = 4;
-      const buffer = new ArrayBuffer(headerSize + width * height * pixelSize);
-      const view = new DataView(buffer);
-
-      // Header
-      let offset = 0;
-      view.setUint32(offset, 256, true); offset += 4;
-      const encodedWH = (width << 0) + (height << 16);
-      view.setUint32(offset, encodedWH, true); offset += 4;
-
-      // Pixels (B, G, R, A)
-      for (let i = 0; i < data.length; i += 4) {
-        view.setUint8(offset++, data[i + 2]); // R
-        view.setUint8(offset++, data[i + 1]); // G
-        view.setUint8(offset++, data[i + 0]); // B
-        view.setUint8(offset++, data[i + 3]); // A
-      }
-
-      const blob = new Blob([buffer], { type: "application/octet-stream" });
-      const link = document.createElement("a");
-      link.download = `${name}.bin.mp3`;
-      link.href = URL.createObjectURL(blob);
-      link.click();
-      URL.revokeObjectURL(link.href);
+      if (isBin) ctx.drawImage(item.source, 0, 0);
+      else drawImageFit(ctx, item.source, width, height, document.getElementById("fitMode").value);
+      item.canvas = canvas;
+      item.pngBlob = canvasToBlob(canvas, "image/png");
+      item.binBlob = canvasToBin(canvas);
+      item.width = canvas.width;
+      item.height = canvas.height;
     }
+
+    function render() {
+      fileList.innerHTML = "";
+      emptyState.style.display = items.length ? "none" : "block";
+      if (!items.length) fileList.appendChild(emptyState);
+      items.forEach((item, index) => {
+        const row = document.createElement("article");
+        row.className = "file-row";
+        const preview = document.createElement("div"); preview.className = "preview";
+        const previewCanvas = document.createElement("canvas"); previewCanvas.width = item.originalWidth; previewCanvas.height = item.originalHeight; previewCanvas.getContext("2d").drawImage(item.source, 0, 0); preview.appendChild(previewCanvas);
+        const info = document.createElement("div");
+        const name = document.createElement("div"); name.className = "file-name"; name.title = item.originalName; name.textContent = item.originalName;
+        const meta = document.createElement("div"); meta.className = "file-meta"; meta.textContent = `${item.type.toUpperCase()} · ${item.originalWidth} × ${item.originalHeight}`;
+        info.append(name, meta);
+        const actions = document.createElement("div"); actions.className = "file-actions";
+        actions.append(actionButton("下载 BIN", () => downloadBlob(item.binBlob, item.baseName + ".bin")), actionButton("下载 PNG", () => downloadBlob(item.pngBlob, item.baseName + ".png")), actionButton("清除", () => { items.splice(index, 1); render(); }));
+        row.append(preview, info, actions); fileList.appendChild(row);
+      });
+      fileCount.textContent = `${items.length} 个文件`;
+      ["downloadAllBin", "downloadAllPng", "clearAll"].forEach(id => document.getElementById(id).disabled = !items.length);
+    }
+
+    function actionButton(text, handler) { const button = document.createElement("button"); button.type = "button"; button.textContent = text; button.addEventListener("click", handler); return button; }
+    function setMessage(text, error = false) { message.textContent = text; message.className = error ? "message error" : "message"; }
+    function loadImage(buffer, type) { return new Promise((resolve, reject) => { const url = URL.createObjectURL(new Blob([buffer], { type: type || "image/png" })); const image = new Image(); image.onload = () => { URL.revokeObjectURL(url); resolve(image); }; image.onerror = () => { URL.revokeObjectURL(url); reject(new Error("图片读取失败")); }; image.src = url; }); }
+    function parseBinImage(arrayBuffer) {
+      try {
+        const view = new DataView(arrayBuffer); if (view.byteLength < 8 || view.getUint32(0, true) !== 256) return null;
+        const packed = view.getUint32(4, true); const width = packed & 0xffff; const height = (packed >>> 16) & 0xffff;
+        if (!width || !height || width > 4096 || height > 4096 || view.byteLength < 8 + width * height * 4) return null;
+        const canvas = document.createElement("canvas"); canvas.width = width; canvas.height = height; const ctx = canvas.getContext("2d"); const pixels = ctx.createImageData(width, height);
+        for (let i = 0, offset = 8; i < pixels.data.length; i += 4, offset += 4) { pixels.data[i] = view.getUint8(offset + 2); pixels.data[i + 1] = view.getUint8(offset + 1); pixels.data[i + 2] = view.getUint8(offset); pixels.data[i + 3] = view.getUint8(offset + 3); }
+        ctx.putImageData(pixels, 0, 0); return { canvas, width, height };
+      } catch { return null; }
+    }
+    function drawImageFit(ctx, image, width, height, mode) {
+      const iw = image.naturalWidth || image.width, ih = image.naturalHeight || image.height; ctx.clearRect(0, 0, width, height);
+      if (mode === "original") { ctx.canvas.width = iw; ctx.canvas.height = ih; ctx.drawImage(image, 0, 0); return; }
+      if (mode === "repeat") { ctx.fillStyle = ctx.createPattern(image, "repeat"); ctx.fillRect(0, 0, width, height); return; }
+      if (mode === "stretch") { ctx.drawImage(image, 0, 0, width, height); return; }
+      if (mode === "center") { ctx.drawImage(image, (width - iw) / 2, (height - ih) / 2); return; }
+      const scale = mode === "fill" ? Math.max(width / iw, height / ih) : mode === "contain-circle" ? Math.min(width, height) / Math.sqrt(iw * iw + ih * ih) : Math.min(width / iw, height / ih);
+      const sw = iw * scale, sh = ih * scale; ctx.drawImage(image, (width - sw) / 2, (height - sh) / 2, sw, sh);
+    }
+    function canvasToBin(canvas) { const data = canvas.getContext("2d").getImageData(0, 0, canvas.width, canvas.height).data; const buffer = new ArrayBuffer(8 + data.length); const view = new DataView(buffer); view.setUint32(0, 256, true); view.setUint32(4, canvas.width | (canvas.height << 16), true); for (let i = 0, offset = 8; i < data.length; i += 4, offset += 4) { view.setUint8(offset, data[i + 2]); view.setUint8(offset + 1, data[i + 1]); view.setUint8(offset + 2, data[i]); view.setUint8(offset + 3, data[i + 3]); } return new Blob([buffer], { type: "application/octet-stream" }); }
+    function canvasToBlob(canvas, type) { return dataURLToBlob(canvas.toDataURL(type)); }
+    function dataURLToBlob(dataUrl) { const [meta, data] = dataUrl.split(","); const bytes = Uint8Array.from(atob(data), c => c.charCodeAt(0)); return new Blob([bytes], { type: meta.match(/:(.*?);/)[1] }); }
+    function downloadBlob(blob, name) { const url = URL.createObjectURL(blob); const link = document.createElement("a"); link.href = url; link.download = name; link.click(); setTimeout(() => URL.revokeObjectURL(url), 0); }
+    render();
   </script>
 </body>
 
