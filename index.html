@@ -3,23 +3,291 @@
 <head>
   <meta charset="UTF-8" name="viewport" content="width=device-width, initial-scale=1.0">
   <title>hap-sign-utils</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+
+      --bg-page: #ffffff;
+      --bg-card: #f8f9fa;
+      --bg-inner: #ffffff;
+      --border-card: #e0e0e0;
+      --border-input: #dddddd;
+
+      --text-primary: #1f2937;
+      --text-secondary: #666666;
+      --text-muted: #888888;
+      --text-btn: #495057;
+
+      --accent: #0066ff;
+      --accent-hover: #0055dd;
+      --accent-bg: #f0f6ff;
+      --disabled: #cccccc;
+
+      --badge-signed-bg: #fff3cd;   --badge-signed-fg: #856404;
+      --badge-unsigned-bg: #d4edda; --badge-unsigned-fg: #155724;
+      --badge-app-bg: #cce5ff;      --badge-app-fg: #004085;
+      --badge-bin-bg: #f8d7da;      --badge-bin-fg: #721c24;
+
+      --msg-bg: #e7f5ff;     --msg-fg: #1971c2;
+      --msg-err-bg: #ffe3e3; --msg-err-fg: #c92a2a;
+
+      --github-hover-bg: #5599ff13;
+      --github-hover-border: #5599ff;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg-page: #121212;
+        --bg-card: #1a1a1a;
+        --bg-inner: #222222;
+        --border-card: #333333;
+        --border-input: #3a3a3a;
+
+        --text-primary: #e8e8e8;
+        --text-secondary: #a8a8a8;
+        --text-muted: #808080;
+        --text-btn: #d0d0d0;
+
+        --accent: #4d9fff;
+        --accent-hover: #6fb0ff;
+        --accent-bg: #1a2a44;
+        --disabled: #555555;
+
+        --badge-signed-bg: #4a3a10;   --badge-signed-fg: #ffd966;
+        --badge-unsigned-bg: #1a4428; --badge-unsigned-fg: #7fd99a;
+        --badge-app-bg: #1a3050;      --badge-app-fg: #8ab8ff;
+        --badge-bin-bg: #4a1f24;      --badge-bin-fg: #ff9b9b;
+
+        --msg-bg: #1a3050;     --msg-fg: #8ab8ff;
+        --msg-err-bg: #4a1f24; --msg-err-fg: #ff9b9b;
+
+        --github-hover-bg: #5599ff22;
+        --github-hover-border: #5599ff;
+      }
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+      background: var(--bg-page);
+      color: var(--text-primary);
+      margin: 0;
+      padding: 16px 0;
+    }
+
+    .tool-card {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      min-width: 50vmin;
+      max-width: 640px;
+      width: 100%;
+      padding: 24px;
+      border-radius: 12px;
+      background: var(--bg-card);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .step { display: flex; flex-direction: column; gap: 12px; }
+
+    .card {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 16px;
+      background: var(--bg-inner);
+      border-radius: 8px;
+      border: 1px solid var(--border-card);
+    }
+
+    .file-upload { display: flex; flex-direction: column; gap: 8px; }
+    .file-input { display: none; }
+
+    .file-label {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding: 12px;
+      border: 1px solid var(--border-input);
+      border-radius: 8px;
+      text-align: center;
+      cursor: pointer;
+      background: var(--bg-inner);
+      color: var(--text-primary);
+      transition: all 0.2s;
+    }
+    .file-label:hover { border-color: var(--accent); background: var(--accent-bg); }
+    .file-icon { font-size: 1.2rem; }
+    .file-name {
+      font-size: 1rem;
+      color: var(--text-secondary);
+      padding: 0 4px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      word-break: break-all;
+    }
+
+    .btn, .btn-secondary, .btn-primary {
+      padding: 12px;
+      border-radius: 8px;
+      text-align: center;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 1rem;
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: #ffffff;
+      font-weight: 500;
+      width: 100%;
+    }
+    .btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
+    .btn-primary:disabled { background: var(--disabled); cursor: not-allowed; }
+
+    .hint { font-size: 0.9rem; color: var(--text-secondary); text-align: center; margin-top: 4px; }
+
+    .button-group { display: flex; flex-direction: column; gap: 10px; }
+
+    .hint-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px;
+      border-radius: 8px;
+      text-align: center;
+      text-decoration: none;
+      border: 1px solid var(--border-input);
+      background: var(--bg-inner);
+      color: var(--text-btn);
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+      justify-content: center;
+    }
+    .hint-btn:hover { border-color: var(--accent); background: var(--accent-bg); color: var(--accent); }
+    .btn-icon { font-size: 1rem; }
+
+    .info-row {
+      display: flex;
+      gap: 12px;
+      padding: 6px 0;
+      align-items: flex-start;
+    }
+    .info-label {
+      min-width: 72px;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      flex-shrink: 0;
+    }
+    .info-value {
+      flex: 1;
+      font-size: 0.9rem;
+      word-break: break-all;
+      color: var(--text-primary);
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 500;
+    }
+    .badge.signed   { background: var(--badge-signed-bg);   color: var(--badge-signed-fg); }
+    .badge.unsigned { background: var(--badge-unsigned-bg); color: var(--badge-unsigned-fg); }
+    .badge.app      { background: var(--badge-app-bg);      color: var(--badge-app-fg); }
+    .badge.bin      { background: var(--badge-bin-bg);      color: var(--badge-bin-fg); }
+
+    .msg {
+      padding: 10px 12px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      background: var(--msg-bg);
+      color: var(--msg-fg);
+    }
+    .msg.error { background: var(--msg-err-bg); color: var(--msg-err-fg); }
+
+    .links {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+    }
+    .link {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 0.5rem 1rem;
+      gap: 0.25rem;
+      color: var(--text-secondary);
+      background: unset;
+      text-decoration: none;
+      font-size: 1rem;
+      transition: color 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+      border-radius: 8px;
+      border: 1px solid transparent;
+      cursor: pointer;
+    }
+    .link-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      height: 1.2rem;
+      width: 1.2rem;
+      font-size: 1.2rem;
+      line-height: 1;
+      fill: var(--text-secondary);
+    }
+    .github-link:hover { border-color: var(--github-hover-border); background: var(--github-hover-bg); }
+  </style>
 </head>
 
 <body>
 
   <div class="tool-card">
+
     <div class="step">
       <div class="file-upload">
-        <input type="file" id="appInput" accept=".app,*/*" class="file-input" />
-        <label for="appInput" class="file-label">
+        <input type="file" id="mainInput" accept=".app,.hap,.bin" class="file-input" />
+        <label for="mainInput" class="file-label">
           <div>
             <span class="file-icon">📁</span>
-            选择 .app 文件
+            选择文件（.app / .hap / .bin）
           </div>
-          <div id="appFileName" class="file-name">未选择文件</div>
+          <div id="mainFileName" class="file-name">未选择文件</div>
         </label>
       </div>
     </div>
+
+    <div class="step" id="infoCard" style="display:none">
+      <div class="card" id="infoContent"></div>
+    </div>
+
+    <div class="step">
+      <div class="file-upload">
+        <input type="file" id="p7bInput" accept=".p7b,*/*" class="file-input" />
+        <label for="p7bInput" class="file-label">
+          <div>
+            <span class="file-icon">🔑</span>
+            选择 .p7b 文件（签名时使用）
+          </div>
+          <div id="p7bFileName" class="file-name">未选择文件</div>
+        </label>
+      </div>
+    </div>
+
+    <div class="step" id="actionsArea" style="display:none">
+      <div class="button-group" id="actionsGroup"></div>
+    </div>
+
+    <div id="msgArea"></div>
 
     <div class="step">
       <div class="card">
@@ -42,26 +310,12 @@
       </div>
     </div>
 
-    <div class="step">
-      <div class="file-upload">
-        <input type="file" id="p7bInput" accept=".p7b,*/*" class="file-input" />
-        <label for="p7bInput" class="file-label">
-          <div>
-            <span class="file-icon">📁</span>
-            选择 .p7b 文件
-          </div>
-          <div id="p7bFileName" class="file-name">未选择文件</div>
-        </label>
-      </div>
-      <button onclick="signHap()" class="btn-primary">开始签名</button>
-    </div>
   </div>
 
   <div class="links">
     <a href="https://github.com/kqakqakqa/hap-sign-utils" class="link github-link" target="_blank" rel="noopener">
       <svg class="link-icon" viewBox="0 0 98 96">
-        <path
-          d="M48.854 0C21.839 0 0 22 0 49.217c0 21.756 13.993 40.172 33.405 46.69 2.427.49 3.316-1.059 3.316-2.362 0-1.141-.08-5.052-.08-9.127-13.59 2.934-16.42-5.867-16.42-5.867-2.184-5.704-5.42-7.17-5.42-7.17-4.448-3.015.324-3.015.324-3.015 4.934.326 7.523 5.052 7.523 5.052 4.367 7.496 11.404 5.378 14.235 4.074.404-3.178 1.699-5.378 3.074-6.6-10.839-1.141-22.243-5.378-22.243-24.283 0-5.378 1.94-9.778 5.014-13.2-.485-1.222-2.184-6.275.486-13.038 0 0 4.125-1.304 13.426 5.052a46.97 46.97 0 0 1 12.214-1.63c4.125 0 8.33.571 12.213 1.63 9.302-6.356 13.427-5.052 13.427-5.052 2.67 6.763.97 11.816.485 13.038 3.155 3.422 5.015 7.822 5.015 13.2 0 18.905-11.404 23.06-22.324 24.283 1.78 1.548 3.316 4.481 3.316 9.126 0 6.6-.08 11.897-.08 13.526 0 1.304.89 2.853 3.316 2.364 19.412-6.52 33.405-24.935 33.405-46.691C97.707 22 75.788 0 48.854 0z" />
+        <path d="M48.854 0C21.839 0 0 22 0 49.217c0 21.756 13.993 40.172 33.405 46.69 2.427.49 3.316-1.059 3.316-2.362 0-1.141-.08-5.052-.08-9.127-13.59 2.934-16.42-5.867-16.42-5.867-2.184-5.704-5.42-7.17-5.42-7.17-4.448-3.015.324-3.015.324-3.015 4.934.326 7.523 5.052 7.523 5.052 4.367 7.496 11.404 5.378 14.235 4.074.404-3.178 1.699-5.378 3.074-6.6-10.839-1.141-22.243-5.378-22.243-24.283 0-5.378 1.94-9.778 5.014-13.2-.485-1.222-2.184-6.275.486-13.038 0 0 4.125-1.304 13.426 5.052a46.97 46.97 0 0 1 12.214-1.63c4.125 0 8.33.571 12.213 1.63 9.302-6.356 13.427-5.052 13.427-5.052 2.67 6.763.97 11.816.485 13.038 3.155 3.422 5.015 7.822 5.015 13.2 0 18.905-11.404 23.06-22.324 24.283 1.78 1.548 3.316 4.481 3.316 9.126 0 6.6-.08 11.897-.08 13.526 0 1.304.89 2.853 3.316 2.364 19.412-6.52 33.405-24.935 33.405-46.691C97.707 22 75.788 0 48.854 0z" />
       </svg>
       <span>查看源代码仓库</span>
     </a>
@@ -74,387 +328,330 @@
 
 </body>
 
-<style>
-  body {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1rem;
-  }
-
-  .tool-card {
-    display: flex;
-    flex-direction: column;
-    gap: 24px;
-    min-width: 50vmin;
-    padding: 24px;
-    border-radius: 12px;
-    background: #f8f9fa;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  }
-
-  .step {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  .card {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    padding: 16px;
-    background: white;
-    border-radius: 8px;
-    border: 1px solid #e0e0e0;
-  }
-
-  .file-upload {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .file-input {
-    display: none;
-  }
-
-  .file-label {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    padding: 12px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    text-align: center;
-    cursor: pointer;
-    background: white;
-    transition: all 0.2s;
-  }
-
-  .file-label:hover {
-    border-color: #0066ff;
-    background: #f0f6ff;
-  }
-
-  .file-icon {
-    font-size: 1.2rem;
-  }
-
-  .file-name {
-    font-size: 1rem;
-    color: #666;
-    padding: 0 4px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .btn,
-  .btn-secondary,
-  .btn-primary {
-    padding: 12px;
-    border-radius: 8px;
-    text-align: center;
-    text-decoration: none;
-    border: none;
-    cursor: pointer;
-    transition: all 0.2s;
-    font-size: 1rem;
-  }
-
-  .btn-primary {
-    background: #0066ff;
-    color: white;
-    font-weight: 500;
-    width: 100%;
-    margin-top: 8px;
-  }
-
-  .btn-primary:hover {
-    background: #0055dd;
-  }
-
-  .hint {
-    font-size: 0.9rem;
-    color: #666;
-    text-align: center;
-    margin-top: 4px;
-  }
-
-  .button-group {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  .hint-btn {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 12px;
-    border-radius: 8px;
-    text-align: center;
-    text-decoration: none;
-    border: 1px solid #ddd;
-    background: white;
-    color: #495057;
-    cursor: pointer;
-    transition: all 0.2s;
-    font-size: 0.9rem;
-    justify-content: center;
-  }
-
-  .hint-btn:hover {
-    border-color: #0066ff;
-    background: #f0f6ff;
-    color: #0066ff;
-  }
-
-  .btn-icon {
-    font-size: 1rem;
-  }
-
-  .links {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-items: center;
-  }
-
-  .link {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 0.5rem 1rem;
-    gap: 0.25rem;
-    color: #666;
-    background: unset;
-    text-decoration: none;
-    font-size: 1rem;
-    transition: color 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
-    border-radius: 8px;
-    border: 1px solid transparent;
-    cursor: pointer;
-  }
-
-  .link-icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    height: 1.2rem;
-    width: 1.2rem;
-    font-size: 1.2rem;
-    line-height: 1;
-    fill: #666;
-  }
-
-  .github-link:hover {
-    border-color: #5599ff;
-    background: #5599ff13;
-  }
-
-  .afdian-link:hover {
-    border-color: #946ce6;
-    background: #946ce613;
-  }
-</style>
-
 <script>
-  // 显示文件名
-  document.getElementById("appInput").addEventListener("change", function (e) {
-    const fileName = e.target.files[0]?.name || "未选择文件";
-    document.getElementById("appFileName").textContent = fileName;
-  });
-
-  document.getElementById("p7bInput").addEventListener("change", function (e) {
-    const fileName = e.target.files[0]?.name || "未选择文件";
-    document.getElementById("p7bFileName").textContent = fileName;
-  });
-
-  window.signHap = notReady;
   window.autoBundleName = notReady;
   window.downloadPage = notReady;
 
-  function notReady() {
-    alert("页面还没有加载完成");
-  }
+  function notReady() { alert("页面还没有加载完成"); }
 
   const csrFile = "-----BEGIN NEW CERTIFICATE REQUEST-----\nMIH+MIGkAgEAMBIxEDAOBgNVBAMMB2RlZmF1bHQwWTATBgcqhkjOPQIBBggqhkjO\nPQMBBwNCAAR1VIBWnhZckS1Xr/GvhEpgr+HpSdlP48szkRw5xes+5+D2pAXts0Or\nsXQ4Y0u/RIWqF7oF7tAtSt92rlhsGUSLoDAwLgYJKoZIhvcNAQkOMSEwHzAdBgNV\nHQ4EFgQUIHP+3xCgek7Vv5FaHLI4sMRIpVMwCgYIKoZIzj0EAwIDSQAwRgIhAPIs\n6WmMIQ+uLZAKEC4scBCNMXa2kZmlZcjFZo/L8S+6AiEAsbsz8jEJMXEL0SNXTAi3\nKSHU01xBcwv1Q2Oi5zRlxos=\n-----END NEW CERTIFICATE REQUEST-----";
   document.querySelector("#downloadCsr").href = URL.createObjectURL(new Blob([csrFile], { type: "application/octet-stream" }));
 </script>
-
-
-
-
-
-
-
-
-
-
-
-
 
 <script type="module">
   import * as jsrsasign from "https://cdn.jsdelivr.net/npm/jsrsasign@11.1.0/+esm";
   import JSZip from "https://cdn.jsdelivr.net/npm/jszip@3.10.1/+esm";
 
   const p12Pem = "-----BEGIN PRIVATE KEY-----\nMIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgBCsp9yrXDMGvvKib\nUddAWZEqNGZmyELWeaJM19FbjGmhRANCAAR1VIBWnhZckS1Xr/GvhEpgr+HpSdlP\n48szkRw5xes+5+D2pAXts0OrsXQ4Y0u/RIWqF7oF7tAtSt92rlhsGUSL\n-----END PRIVATE KEY-----";
-  // https://pki.consumer.huawei.com/ca#/
-  const cerRoot = "-----BEGIN CERTIFICATE-----\nMIICGjCCAaGgAwIBAgIIShhpn519jNAwCgYIKoZIzj0EAwMwUzELMAkGA1UEBhMC\nQ04xDzANBgNVBAoMBkh1YXdlaTETMBEGA1UECwwKSHVhd2VpIENCRzEeMBwGA1UE\nAwwVSHVhd2VpIENCRyBSb290IENBIEcyMB4XDTIwMDMxNjAzMDQzOVoXDTQ5MDMx\nNjAzMDQzOVowUzELMAkGA1UEBhMCQ04xDzANBgNVBAoMBkh1YXdlaTETMBEGA1UE\nCwwKSHVhd2VpIENCRzEeMBwGA1UEAwwVSHVhd2VpIENCRyBSb290IENBIEcyMHYw\nEAYHKoZIzj0CAQYFK4EEACIDYgAEWidkGnDSOw3/HE2y2GHl+fpWBIa5S+IlnNrs\nGUvwC1I2QWvtqCHWmwFlFK95zKXiM8s9yV3VVXh7ivN8ZJO3SC5N1TCrvB2lpHMB\nwcz4DA0kgHCMm/wDec6kOHx1xvCRo0IwQDAOBgNVHQ8BAf8EBAMCAQYwDwYDVR0T\nAQH/BAUwAwEB/zAdBgNVHQ4EFgQUo45a9Vq8cYwqaiVyfkiS4pLcIAAwCgYIKoZI\nzj0EAwMDZwAwZAIwMypeB7P0IbY7c6gpWcClhRznOJFj8uavrNu2PIoz9KIqr3jn\nBlBHJs0myI7ntYpEAjBbm8eDMZY5zq5iMZUC6H7UzYSix4Uy1YlsLVV738PtKP9h\nFTjgDHctXJlC5L7+ZDY=\n-----END CERTIFICATE-----\n-----BEGIN CERTIFICATE-----\nMIIDATCCAoigAwIBAgIIXmuDXbWpOB8wCgYIKoZIzj0EAwMwUzELMAkGA1UEBhMC\nQ04xDzANBgNVBAoMBkh1YXdlaTETMBEGA1UECwwKSHVhd2VpIENCRzEeMBwGA1UE\nAwwVSHVhd2VpIENCRyBSb290IENBIEcyMB4XDTIwMDcwOTAyMDQyNFoXDTMwMDcw\nNzAyMDQyNFowYjELMAkGA1UEBgwCQ04xDzANBgNVBAoMBkh1YXdlaTETMBEGA1UE\nCwwKSHVhd2VpIENCRzEtMCsGA1UEAwwkSHVhd2VpIENCRyBEZXZlbG9wZXIgUmVs\nYXRpb25zIENBIEcyMHYwEAYHKoZIzj0CAQYFK4EEACIDYgAE65LdoIZh1hlpZ2gP\nbJ6gPhHsvYSRe22KETgdqeVeYnrbRHI9wsPT6RGYS+pU4mPl6wxzgDMqN6SY/BoZ\nluhkE1PzaHoPoNIWIq0O33hpyKyyYwAacIUEjYurkw1E9r9no4IBGDCCARQwHwYD\nVR0jBBgwFoAUo45a9Vq8cYwqaiVyfkiS4pLcIAAwHQYDVR0OBBYEFNtek7Ij6NDk\n/nF6Zumkc0dbf/NeMEYGA1UdIAQ/MD0wOwYEVR0gADAzMDEGCCsGAQUFBwIBFiVo\ndHRwOi8vY3BraS1jYXdlYi5odWF3ZWkuY29tL2Nwa2kvY3BzMBIGA1UdEwEB/wQI\nMAYBAf8CAQAwDgYDVR0PAQH/BAQDAgEGMGYGA1UdHwRfMF0wW6BZoFeGVWh0dHA6\nLy9jcGtpLWNhd2ViLmh1YXdlaS5jb20vY3BraS9zZXJ2bGV0L2NybEZpbGVEb3du\nLmNybD9jZXJ0eXBlPTEwJi9yb290X2cyX2NybC5jcmwwCgYIKoZIzj0EAwMDZwAw\nZAIwWO1X5q2MdfpR1Q237GpUHGbL1C13rGyFg2p3AYo44FpZ2/A9ss0wOHKM4KDl\nZPqdAjBLkf8NPZy7KVog98+iCTLq35DJ2ZVxkCxknA9YhiHVyXf4HPm4JlT7rW7o\nQ+FzM3c=\n-----END CERTIFICATE-----\n"
+  const cerRoot = "-----BEGIN CERTIFICATE-----\nMIICGjCCAaGgAwIBAgIIShhpn519jNAwCgYIKoZIzj0EAwMwUzELMAkGA1UEBhMC\nQ04xDzANBgNVBAoMBkh1YXdlaTETMBEGA1UECwwKSHVhd2VpIENCRzEeMBwGA1UE\nAwwVSHVhd2VpIENCRyBSb290IENBIEcyMB4XDTIwMDMxNjAzMDQzOVoXDTQ5MDMx\nNjAzMDQzOVowUzELMAkGA1UEBhMCQ04xDzANBgNVBAoMBkh1YXdlaTETMBEGA1UE\nCwwKSHVhd2VpIENCRzEeMBwGA1UEAwwVSHVhd2VpIENCRyBSb290IENBIEcyMHYw\nEAYHKoZIzj0CAQYFK4EEACIDYgAEWidkGnDSOw3/HE2y2GHl+fpWBIa5S+IlnNrs\nGUvwC1I2QWvtqCHWmwFlFK95zKXiM8s9yV3VVXh7ivN8ZJO3SC5N1TCrvB2lpHMB\nwcz4DA0kgHCMm/wDec6kOHx1xvCRo0IwQDAOBgNVHQ8BAf8EBAMCAQYwDwYDVR0T\nAQH/BAUwAwEB/zAdBgNVHQ4EFgQUo45a9Vq8cYwqaiVyfkiS4pLcIAAwCgYIKoZI\nzj0EAwMDZwAwZAIwMypeB7P0IbY7c6gpWcClhRznOJFj8uavrNu2PIoz9KIqr3jn\nBlBHJs0myI7ntYpEAjBbm8eDMZY5zq5iMZUC6H7UzYSix4Uy1YlsLVV738PtKP9h\nFTjgDHctXJlC5L7+ZDY=\n-----END CERTIFICATE-----\n-----BEGIN CERTIFICATE-----\nMIIDATCCAoigAwIBAgIIXmuDXbWpOB8wCgYIKoZIzj0EAwMwUzELMAkGA1UEBhMC\nQ04xDzANBgNVBAoMBkh1YXdlaTETMBEGA1UECwwKSHVhd2VpIENCRzEeMBwGA1UE\nAwwVSHVhd2VpIENCRyBSb290IENBIEcyMB4XDTIwMDcwOTAyMDQyNFoXDTMwMDcw\nNzAyMDQyNFowYjELMAkGA1UEBgwCQ04xDzANBgNVBAoMBkh1YXdlaTETMBEGA1UE\nCwwKSHVhd2VpIENCRzEtMCsGA1UEAwwkSHVhd2VpIENCRyBEZXZlbG9wZXIgUmVs\nYXRpb25zIENBIEcyMHYwEAYHKoZIzj0CAQYFK4EEACIDYgAE65LdoIZh1hlpZ2gP\nbJ6gPhHsvYSRe22KETgdqeVeYnrbRHI9wsPT6RGYS+pU4mPl6wxzgDMqN6SY/BoZ\nluhkE1PzaHoPoNIWIq0O33hpyKyyYwAacIUEjYurkw1E9r9no4IBGDCCARQwHwYD\nVR0jBBgwFoAUo45a9Vq8cYwqaiVyfkiS4pLcIAAwHQYDVR0OBBYEFNtek7Ij6NDk\n/nF6Zumkc0dbf/NeMEYGA1UdIAQ/MD0wOwYEVR0gADAzMDEGCCsGAQUFBwIBFiVo\ndHRwOi8vY3BraS1jYXdlYi5odWF3ZWkuY29tL2Nwa2kvY3BzMBIGA1UdEwEB/wQI\nMAYBAf8CAQAwDgYDVR0PAQH/BAQDAgEGMGYGA1UdHwRfMF0wW6BZoFeGVWh0dHA6\nLy9jcGtpLWNhd2ViLmh1YXdlaS5jb20vY3BraS9zZXJ2bGV0L2NybEZpbGVEb3du\nLmNybD9jZXJ0eXBlPTEwJi9yb290X2cyX2NybC5jcmwwCgYIKoZIzj0EAwMDZwAw\nZAIwWO1X5q2MdfpR1Q237GpUHGbL1C13rGyFg2p3AYo44FpZ2/A9ss0wOHKM4KDl\nZPqdAjBLkf8NPZy7KVog98+iCTLq35DJ2ZVxkCxknA9YhiHVyXf4HPm4JlT7rW7o\nQ+FzM3c=\n-----END CERTIFICATE-----\n";
   const pubKey = "-----BEGIN PUBLIC KEY-----\r\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEdVSAVp4WXJEtV6/xr4RKYK/h6UnZ\r\nT+PLM5EcOcXrPufg9qQF7bNDq7F0OGNLv0SFqhe6Be7QLUrfdq5YbBlEiw==\r\n-----END PUBLIC KEY-----\r\n";
 
-  window.signHap = signHap;
-  window.autoBundleName = autoBundleName;
-  window.downloadPage = downloadPage;
+  const MAGIC_BYTE = 0xBE;
+  const SIGN_HEAD_MARKER = "hw signed app   1000";
 
-  async function autoBundleName() {
-    const bundleName = "hap.sign." + getTimeStr();
-    try {
-      await copyToClipboard(bundleName);
-    } catch {
-      alert("复制失败");
-      return;
-    }
-    alert("已复制到剪贴板");
+  const state = {
+    currentFile: null,
+    currentP7b: null,
+  };
+
+  function uint8ArrayToHex(u8) {
+    return Array.from(u8).map(b => b.toString(16).padStart(2, "0")).join("");
+  }
+  function hexToUint8Array(hex) {
+    return new Uint8Array(hex.match(/.{2}/g).map(h => parseInt(h, 16)));
+  }
+  function makeInt32BE(num) {
+    const buffer = new ArrayBuffer(4);
+    new DataView(buffer).setUint32(0, num, false);
+    return new Uint8Array(buffer);
+  }
+  function makeInt64BE(num) {
+    const buffer = new ArrayBuffer(8);
+    new DataView(buffer).setBigUint64(0, BigInt(num), false);
+    return new Uint8Array(buffer);
+  }
+  function stringToBytes(str) {
+    return new Uint8Array([...str].map(c => c.charCodeAt(0)));
+  }
+  function getTimeStr(date = new Date(new Date().getTime() + 8 * 3600 * 1000)) {
+    const year = date.getUTCFullYear();
+    const month = ("0" + (date.getUTCMonth() + 1)).slice(-2);
+    const day = ("0" + date.getUTCDate()).slice(-2);
+    const hours = ("0" + date.getUTCHours()).slice(-2);
+    const minutes = ("0" + date.getUTCMinutes()).slice(-2);
+    const seconds = ("0" + date.getUTCSeconds()).slice(-2);
+    return `${year}${month}${day}${hours}${minutes}${seconds}`;
+  }
+  function downloadBlob(blob, filename) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+  async function copyToClipboard(text) {
+    try { await navigator.clipboard.writeText(text); return; } catch {}
+    const textArea = document.createElement("textarea");
+    textArea.style.position = "fixed";
+    textArea.setAttribute("readonly", "readonly");
+    textArea.value = text;
+    document.body.appendChild(textArea);
+    textArea.select();
+    document.execCommand("Copy");
+    textArea.remove();
+  }
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+    }[c]));
   }
 
-  async function downloadPage() {
-    try {
-      const indexResp = await fetch("index.html");
-      const indexHtml = await indexResp.text();
+  // 优先看 hap 内的结构性文件，避免把资源 .bin 误判为签名 bin。
+  async function detectFileType(file) {
+    const ext = (file.name.split(".").pop() || "").toLowerCase();
+    if (ext === "p7b") return "p7b";
 
-      const licenseResp = await fetch("LICENSE");
-      const licenseText = await licenseResp.text();
+    const head = new Uint8Array(await file.slice(0, Math.min(8, file.size)).arrayBuffer());
+    if (head[0] === MAGIC_BYTE) return "bin";
 
-      const zip = new JSZip();
-      zip.file("index.html", indexHtml);
-      zip.file("LICENSE", licenseText);
+    if (head[0] === 0x50 && head[1] === 0x4B) {
+      try {
+        const zip = await JSZip.loadAsync(await file.arrayBuffer());
+        const names = Object.keys(zip.files).filter(n => !zip.files[n].dir);
 
-      const blob = await zip.generateAsync({ type: "blob" });
-      const filename = "hap-sign-utils_" + getTimeStr() + ".zip";
-      downloadBlob(blob, filename);
-    } catch (e) {
-      alert("下载失败：" + e.message);
-      throw e;
+        if (names.some(n => n.endsWith(".hap"))) return "app";
+
+        const hasConfig = names.some(n => n === "config.json" || n.endsWith("/config.json"));
+        const hasPackInfo = names.some(n => n === "pack.info" || n.endsWith("/pack.info"));
+        if (hasConfig || hasPackInfo) return "unsigned-hap";
+
+        for (const name of names.filter(n => n.endsWith(".bin"))) {
+          const binBuf = await zip.files[name].async("uint8array");
+          if (binBuf.length >= 32 && binBuf[0] === MAGIC_BYTE) {
+            const marker = new TextDecoder().decode(
+              binBuf.subarray(binBuf.length - 32, binBuf.length - 12)
+            );
+            if (marker === SIGN_HEAD_MARKER) return "signed-hap";
+          }
+        }
+        return "unknown";
+      } catch {
+        return "unknown";
+      }
     }
+    return "unknown";
   }
 
-  async function signHap() {
-    try {
-      // input
-      const appFile = document.querySelector("#appInput").files[0];
-      if (!appFile) return alert("请选择 .app 文件");
-      const p7bFile = document.querySelector("#p7bInput").files[0];
-      if (!p7bFile) return alert("请选择 .p7b 文件");
+  // proBlock 有两种写法：0x02 单独，或 0x01+0x00，两种都要接受。
+  // 优先用 signHead 里的 subBlockSize 反推，失败再正向扫描兜底。
+  function parseBinHeader(binUint8) {
+    if (binUint8.length < 10 || binUint8[0] !== MAGIC_BYTE) {
+      throw new Error("不是有效的 .bin 文件（魔数 0xBE 不匹配）");
+    }
+    const binView = new DataView(binUint8.buffer, binUint8.byteOffset, binUint8.byteLength);
+    const bundleNameLen = binView.getUint32(1, false);
+    if (5 + bundleNameLen > binUint8.length) throw new Error("bundleName 长度越界");
+    const bundleName = new TextDecoder().decode(binUint8.subarray(5, 5 + bundleNameLen));
 
-      //
-      if (!JSZip) return alert("签名工具加载不完整（JSZip），请检查网络");
-      if (!jsrsasign) return alert("签名工具加载不完整（jsrsasign），请检查网络");
+    function isProBlockHead(b0, b1) {
+      return b0 === 0x02 || (b0 === 0x01 && b1 === 0x00);
+    }
 
-      // 解析 p7b
-      const p7bUint8Array = new Uint8Array(await p7bFile.arrayBuffer());
-      const p7bHex = uint8ArrayToHex(p7bUint8Array);
+    let isSigned = false;
+    let unsignedEnd = binUint8.length;
+    let p7bBuf = null;
 
-      const p7bParser = new jsrsasign.KJUR.asn1.cms.CMSParser();
-      const p7bEContentHex = p7bParser.getCMSSignedData(p7bHex).econtent.content.hex;
-      const p7bEContentStr = new TextDecoder().decode(hexToUint8Array(p7bEContentHex))
-      const p7bEContent = JSON.parse(p7bEContentStr);
-      console.log("p7b eContent: ", p7bEContent);
+    if (binUint8.length >= 32) {
+      const tailMarker = new TextDecoder().decode(
+        binUint8.subarray(binUint8.length - 32, binUint8.length - 12)
+      );
+      if (tailMarker === SIGN_HEAD_MARKER) {
+        isSigned = true;
+        const subBlockSize = binView.getUint32(binUint8.length - 12, false);
 
-      const bundleName = p7bEContent["bundle-info"]["bundle-name"];
-      console.log("bundleName: ", bundleName);
-
-      const signTime = p7bEContent.validity["not-before"];
-      const signTimeStr = getTimeStr(new Date(signTime * 1000)) + "Z";
-      console.log("signTime: ", signTime, signTimeStr);
-
-      const cerLeaf = p7bEContent["bundle-info"]["development-certificate"];
-      const cerStr = cerRoot + cerLeaf;
-
-      const cerPubKey = jsrsasign.KEYUTIL.getPEM(jsrsasign.KEYUTIL.getKey(cerStr));
-      if (cerPubKey !== pubKey) alert(".p7b 文件公钥不匹配");
-
-      // 解压 app、hap
-      const appLoad = await JSZip.loadAsync(appFile);
-      const hapEntry = Object.values(appLoad.files).find(f => f.name.endsWith(".hap"));
-      if (!hapEntry) {
-        // 排除 bin
-        const binEntry = Object.values(appLoad.files).find(f => f.name.endsWith(".bin"));
-        if (binEntry) {
-          const binBuf = await binEntry.async("uint8array");
-          if (binBuf[0] === 0xBE) {
-            return alert(".hap 文件不需要再次签名");
+        const candidates = [
+          binUint8.length - subBlockSize,
+          binUint8.length - subBlockSize - 8,
+          binUint8.length - subBlockSize - 16,
+          binUint8.length - subBlockSize + 8,
+        ];
+        for (const pos of candidates) {
+          if (pos < 10 || pos + 8 > binUint8.length - 32) continue;
+          if (!isProBlockHead(binUint8[pos], binUint8[pos + 1])) continue;
+          const proView = new DataView(binUint8.buffer, binUint8.byteOffset + pos, 8);
+          const p7bLen = proView.getUint16(2, false);
+          const p7bStart = proView.getUint32(4, false);
+          if (p7bStart === pos + 16 && p7bStart + p7bLen <= binUint8.length - 32) {
+            unsignedEnd = pos;
+            p7bBuf = binUint8.slice(p7bStart, p7bStart + p7bLen);
+            break;
           }
         }
 
-        return alert(".app 文件格式不正确：没有找到 .hap 文件");
+        if (p7bBuf === null) {
+          for (let i = 1; i + 8 < binUint8.length - 32; i++) {
+            if (!isProBlockHead(binUint8[i], binUint8[i + 1])) continue;
+            const proView = new DataView(binUint8.buffer, binUint8.byteOffset + i, 8);
+            const offsetVal = proView.getUint32(4, false);
+            if (offsetVal === i + 16) {
+              const p7bLen = proView.getUint16(2, false);
+              if (offsetVal + p7bLen <= binUint8.length - 32) {
+                unsignedEnd = i;
+                p7bBuf = binUint8.slice(offsetVal, offsetVal + p7bLen);
+                break;
+              }
+            }
+          }
+        }
+
+        if (p7bBuf === null) {
+          const head = Array.from(binUint8.subarray(0, Math.min(64, binUint8.length)))
+            .map(b => b.toString(16).padStart(2, "0")).join(" ");
+          const tail = Array.from(binUint8.subarray(binUint8.length - 64))
+            .map(b => b.toString(16).padStart(2, "0")).join(" ");
+          console.error("=== proBlock 定位失败诊断 ===");
+          console.error({ subBlockSize, fileSize: binUint8.length, head, tail });
+          throw new Error(
+            `已签名的 .bin 但无法定位 proBlock（subBlockSize=${subBlockSize}）。` +
+            `详细诊断已输出到浏览器控制台 (F12)。`
+          );
+        }
       }
-
-      const hapBlob = await hapEntry.async("blob");
-      const hapLoad = await JSZip.loadAsync(hapBlob);
-
-      // 修改 config.json 中的包名、version code
-      try {
-        const config = JSON.parse(await (hapLoad.file("config.json")).async("text"));
-        config.app.bundleName = bundleName;
-        config.app.version.code = 0;
-        hapLoad.file("config.json", JSON.stringify(config));
-      } catch (e) {
-        alert("config.json 解析失败：" + e.message);
-        throw e;
-      }
-
-      // const modifiedHapUint8Array = await hapLoad.generateAsync({
-      //   type: "uint8array",
-      //   compression: "STORE"
-      // });
-
-      // const cerUint8Array = new Uint8Array(await cerFile.arrayBuffer());
-
-      const unsignedBinUint8Array = await hapToBin(hapLoad);
-
-      const signedBinUint8Array = await signBin({
-        unsignedBinUint8Array,
-        p7bUint8Array,
-        p12Pem,
-        cerStr,
-        signTimeStr
-      });
-      const signedBinBlob = new Blob([signedBinUint8Array], { type: "application/octet-stream" });
-
-      const signedHap = new JSZip();
-      signedHap.file("signed.bin", signedBinBlob, { binary: true, compression: "STORE" });
-      const signedHapBlob = new Blob([await signedHap.generateAsync({ type: "blob" })], { type: "application/octet-stream" });
-      const fileName = appFile.name.replace(/\.app$/, "") + ".hap";
-
-      alert("签名完成");
-      downloadBlob(signedHapBlob, fileName);
-    } catch (e) {
-      alert("签名失败：" + e.message);
-      throw e;
     }
+
+    const files = new Map();
+    let pos = 5 + bundleNameLen;
+    while (pos < unsignedEnd) {
+      if (pos + 4 > unsignedEnd) break;
+      const nameLen = binView.getUint32(pos, false);
+      if (nameLen === 0 || nameLen > 4096 || pos + 4 + nameLen > unsignedEnd) break;
+      const fileName = new TextDecoder().decode(binUint8.subarray(pos + 4, pos + 4 + nameLen));
+      pos += 4 + nameLen;
+
+      if (pos + 4 > unsignedEnd) break;
+      const pathLen = binView.getUint32(pos, false);
+      if (pathLen > 4096 || pos + 4 + pathLen > unsignedEnd) break;
+      const relPath = new TextDecoder().decode(binUint8.subarray(pos + 4, pos + 4 + pathLen));
+      pos += 4 + pathLen;
+
+      if (pos + 8 > unsignedEnd) break;
+      const contentLen = Number(binView.getBigUint64(pos, false));
+      pos += 8;
+      if (contentLen < 0 || pos + contentLen > unsignedEnd) break;
+
+      const content = binUint8.slice(pos, pos + contentLen);
+      pos += contentLen;
+
+      const fullPath = relPath === "" ? fileName : relPath.replace(/^\//, "") + "/" + fileName;
+      files.set(fullPath, content);
+    }
+
+    return { bundleName, files, isSigned, p7bBuf };
+  }
+
+  async function buildHapFromFiles(files) {
+    const zip = new JSZip();
+    for (const [path, data] of files) {
+      zip.file(path, data, { binary: true });
+    }
+    return new Uint8Array(await zip.generateAsync({ type: "uint8array", compression: "STORE" }));
+  }
+
+  async function buildAppFromHap(hapBuf) {
+    const zip = new JSZip();
+    zip.file("entry-release-lite.hap", hapBuf, { binary: true, compression: "STORE" });
+    return await zip.generateAsync({ type: "blob", compression: "STORE" });
+  }
+
+  function parsePackInfo(files) {
+    const buf = files.get("pack.info");
+    if (!buf) return null;
+    try { return JSON.parse(new TextDecoder().decode(buf)); } catch { return null; }
+  }
+
+  function parseResourcesIndex(files) {
+    let buf = files.get("assets/entry/resources.index");
+    if (!buf) {
+      for (const [path, data] of files) {
+        if (path.endsWith("resources.index")) { buf = data; break; }
+      }
+    }
+    if (!buf) return null;
+
+    const view = new DataView(buf.buffer, buf.byteOffset, buf.byteLength);
+    const len = buf.length;
+    const result = new Map();
+
+    for (let off = 0; off + 16 < len; off++) {
+      const recordSize = view.getUint32(off, true);
+      const offEnd = off + 4 + recordSize;
+      if (recordSize < 12 || offEnd > len) continue;
+      try {
+        const resType = view.getUint32(off + 4, true);
+        const id = view.getUint32(off + 8, true);
+        const valueSize = view.getUint16(off + 12, true);
+        const offValue = off + 14;
+        const offNameSize = offValue + valueSize;
+        const offName = offNameSize + 2;
+        if (offName > offEnd) continue;
+        const nameSize = view.getUint16(offNameSize, true);
+        if (offName + nameSize !== offEnd) continue;
+        if (nameSize === 0) continue;
+
+        const value = new TextDecoder().decode(buf.subarray(offValue, offValue + valueSize)).replace(/\0/g, "");
+        const name = new TextDecoder().decode(buf.subarray(offName, offName + nameSize)).replace(/\0/g, "");
+        if (!name) continue;
+        if (!result.has(name)) result.set(name, { resType, id, value });
+      } catch { /* 忽略误匹配 */ }
+    }
+    return result;
+  }
+
+  // 不同 Restool 版本下键名可能是 app_name 或 appName，两种都接受。
+  function findAppName(result, resIndex) {
+    for (const key of ["app_name", "appName"]) {
+      const v = resIndex?.get(key)?.value;
+      if (v) return v;
+    }
+
+    const configBuf = result.files.get("config.json");
+    if (configBuf) {
+      try {
+        const config = JSON.parse(new TextDecoder().decode(configBuf));
+        const label = config?.module?.abilities?.[0]?.label;
+        if (label) {
+          if (label.startsWith("$string:")) {
+            const key = label.substring(8);
+            for (const k of [key, key.replace(/_([a-z])/g, (_, c) => c.toUpperCase())]) {
+              const entry = resIndex?.get(k);
+              if (entry?.value) return entry.value;
+            }
+          } else if (!label.startsWith("$")) {
+            return label;
+          }
+        }
+      } catch { /* 忽略 */ }
+    }
+
+    const packInfo = parsePackInfo(result.files);
+    const pl = packInfo?.summary?.app?.label;
+    if (pl && !pl.startsWith("$")) return pl;
+
+    return null;
   }
 
   async function hapToBin(hapLoad) {
     const bundleName = JSON.parse(await (hapLoad.file("config.json")).async("text")).app.bundleName;
-
     const encoder = new TextEncoder();
     const parts = [];
 
-    // 写入 magic byte
-    const MAGIC_BYTE = 0xBE;
     parts.push(Uint8Array.from([MAGIC_BYTE]));
 
-    // 写入 bundleName 长度（big endian int）+ 内容
     const bundleNameBytes = encoder.encode(bundleName);
     parts.push(makeInt32BE(bundleNameBytes.length));
     parts.push(bundleNameBytes);
 
-    let fileCount = 0;
     const sortedEntries = Object.entries(hapLoad.files)
       .filter(([path, entry]) => !entry.dir)
       .sort((a, b) => {
@@ -465,10 +662,7 @@
       });
 
     for (const [fullPath, zipEntry] of sortedEntries) {
-      console.log(fullPath);
-
       if (zipEntry.dir) continue;
-
       const content = await zipEntry.async("uint8array");
       const fileName = fullPath.split("/").pop();
       let relPath = "/" + fullPath.substring(0, fullPath.lastIndexOf("/"));
@@ -477,23 +671,13 @@
       const fileNameBytes = encoder.encode(fileName);
       const relPathBytes = encoder.encode(relPath);
 
-      // 文件名长度 + 内容
       parts.push(makeInt32BE(fileNameBytes.length));
       parts.push(fileNameBytes);
-
-      // 相对路径长度 + 内容
       parts.push(makeInt32BE(relPathBytes.length));
       parts.push(relPathBytes);
-
-      // 内容长度（8 字节） + 内容
       parts.push(makeInt64BE(content.length));
       parts.push(content);
-
-      fileCount++;
     }
-
-    console.log(`写入了 ${fileCount} 个文件`);
-
     return new Uint8Array(await (new Blob(parts, { type: "application/octet-stream" })).arrayBuffer());
   }
 
@@ -521,21 +705,15 @@
     signedBin.set(bytes, 0);
     signedBin.set(outputChunk, offsetSignBlock);
     signedBin.set(signHead, offsetSignBlock + outputChunk.length);
-
     return signedBin;
   }
 
   function getBlockHead(type, tag, length, offset) {
     const bytes = new Uint8Array(8);
     bytes.set([
-      type,
-      tag,
-      (length >> 8) & 0xff,
-      length & 0xff,
-      (offset >> 24) & 0xff,
-      (offset >> 16) & 0xff,
-      (offset >> 8) & 0xff,
-      offset & 0xff
+      type, tag,
+      (length >> 8) & 0xff, length & 0xff,
+      (offset >> 24) & 0xff, (offset >> 16) & 0xff, (offset >> 8) & 0xff, offset & 0xff
     ], 0);
     return bytes;
   }
@@ -546,18 +724,9 @@
     const outBytes = new Uint8Array(size);
     outBytes.set([
       ...stringToBytes("1000"),
-      (size >> 8) & 0xff,
-      size & 0xff,
-      0x00,
-      0x01,
-      0x00,
-      0x88,
-      0x00,
-      0x06,
-      (dataLen >> 24) & 0xff,
-      (dataLen >> 16) & 0xff,
-      (dataLen >> 8) & 0xff,
-      dataLen & 0xff,
+      (size >> 8) & 0xff, size & 0xff,
+      0x00, 0x01, 0x00, 0x88, 0x00, 0x06,
+      (dataLen >> 24) & 0xff, (dataLen >> 16) & 0xff, (dataLen >> 8) & 0xff, dataLen & 0xff,
       ...inBytes
     ], 0);
     return outBytes;
@@ -568,173 +737,401 @@
     signHead.set([
       ...stringToBytes("hw signed app   "),
       ...stringToBytes("1000"),
-      (subBlockSize >> 24) & 0xff,
-      (subBlockSize >> 16) & 0xff,
-      (subBlockSize >> 8) & 0xff,
-      subBlockSize & 0xff,
+      (subBlockSize >> 24) & 0xff, (subBlockSize >> 16) & 0xff,
+      (subBlockSize >> 8) & 0xff, subBlockSize & 0xff,
       0x00, 0x00, 0x00, 0x02,
       0x00, 0x00, 0x00, 0x00
     ], 0);
-
     return signHead;
   }
 
   async function generateSignedData({ dataUint8Array, p12Pem, cerStr, signTimeStr }) {
-    console.log(`generateSignedData ${dataUint8Array}, p12: ${p12Pem}, cer: ${cerStr}, signtime: ${signTimeStr}`);
-
-    // 读取 CER
     const certs = sortCerts(cerStr.trim().split(/(?=-----BEGIN CERTIFICATE-----)/).map(s => s.trim()));
-
-    // 构造 SignedData
     const signedData = new jsrsasign.KJUR.asn1.cms.SignedData({
       version: 1,
       hashalgs: ["sha256"],
-      econtent: {
-        type: "data",
-        content: {
-          hex: uint8ArrayToHex(dataUint8Array)
-        }
-      },
-      certs: certs,
+      econtent: { type: "data", content: { hex: uint8ArrayToHex(dataUint8Array) } },
+      certs,
       revinfos: { array: [] },
       sinfos: [{
         version: 1,
-        id: {
-          type: "isssn",
-          cert: certs[0]
-        },
+        id: { type: "isssn", cert: certs[0] },
         hashalg: "sha256",
         sattrs: {
-          array: [{
-            attr: "signingTime",
-            type: new jsrsasign.KJUR.asn1.cms.SigningTime(signTimeStr),
-          },
-          {
-            attr: "contentType",
-            type: "1.2.840.113549.1.7.1"
-          }, {
-            attr: "messageDigest",
-            hex: uint8ArrayToHex(new Uint8Array(await crypto.subtle.digest("SHA-256", dataUint8Array)))
-          }]
+          array: [
+            { attr: "signingTime", type: new jsrsasign.KJUR.asn1.cms.SigningTime(signTimeStr) },
+            { attr: "contentType", type: "1.2.840.113549.1.7.1" },
+            { attr: "messageDigest", hex: uint8ArrayToHex(new Uint8Array(await crypto.subtle.digest("SHA-256", dataUint8Array))) }
+          ]
         },
         sigalg: "SHA256withECDSA",
         signkey: p12Pem
       }]
     });
-
-    // 编码为 DER
-    const derHex = signedData.getContentInfoEncodedHex();
-    return hexToUint8Array(derHex);
+    return hexToUint8Array(signedData.getContentInfoEncodedHex());
   }
 
   function sortCerts(certs) {
-    // 解析 subject issuer
     const cert = certs.map(pem => {
       const c = new jsrsasign.X509();
       c.readCertPEM(pem);
-      console.log(`cert: subject=${c.getSubjectString()}, issuer=${c.getIssuerString()}`);
-      return {
-        pem,
-        subject: c.getSubjectString(),
-        issuer: c.getIssuerString()
-      };
+      return { pem, subject: c.getSubjectString(), issuer: c.getIssuerString() };
     });
-
-    // 找叶子证书
     const leaf = cert.find(c => !cert.some(x => x.issuer === c.subject));
     if (!leaf) throw new Error("找不到叶子证书");
-
-    // 排序
     const ordered = [];
     let current = leaf;
     while (current) {
       ordered.push(current.pem);
-      if (current.subject === current.issuer) break; // 根证书
+      if (current.subject === current.issuer) break;
       current = cert.find(x => x.subject === current.issuer);
     }
-
     return ordered;
   }
 
   async function slicedSHA256(bytes) {
     const chunkSize = 4096;
     const hashBuffer = new Uint8Array(Math.ceil(bytes.length / chunkSize) * 32);
-
-    // 分块计算 SHA256
     for (let offset = 0; offset < bytes.length; offset += chunkSize) {
       const chunk = bytes.subarray(offset, offset + chunkSize);
-      const digest = new Uint8Array(await crypto.subtle.digest("SHA-256", chunk))
+      const digest = new Uint8Array(await crypto.subtle.digest("SHA-256", chunk));
       hashBuffer.set(digest, Math.floor(offset / chunkSize) * 32);
     }
-
-    const totalDigest = await crypto.subtle.digest("SHA-256", hashBuffer);
-    return new Uint8Array(totalDigest);
+    return new Uint8Array(await crypto.subtle.digest("SHA-256", hashBuffer));
   }
 
-  function makeInt32BE(num) {
-    const buffer = new ArrayBuffer(4);
-    new DataView(buffer).setUint32(0, num, false); // false = big endian
-    return new Uint8Array(buffer);
+  // 从 buffer 直接签名，逻辑与原 signHap 一致
+  async function signHapBuffers(appBuffer, p7bUint8) {
+    if (!JSZip) throw new Error("签名工具加载不完整（JSZip），请检查网络");
+    if (!jsrsasign) throw new Error("签名工具加载不完整（jsrsasign），请检查网络");
+
+    const p7bHex = uint8ArrayToHex(p7bUint8);
+    const p7bParser = new jsrsasign.KJUR.asn1.cms.CMSParser();
+    const p7bEContentHex = p7bParser.getCMSSignedData(p7bHex).econtent.content.hex;
+    const p7bEContent = JSON.parse(new TextDecoder().decode(hexToUint8Array(p7bEContentHex)));
+
+    const bundleName = p7bEContent["bundle-info"]["bundle-name"];
+    const signTime = p7bEContent.validity["not-before"];
+    const signTimeStr = getTimeStr(new Date(signTime * 1000)) + "Z";
+    const cerLeaf = p7bEContent["bundle-info"]["development-certificate"];
+    const cerStr = cerRoot + cerLeaf;
+
+    const cerPubKey = jsrsasign.KEYUTIL.getPEM(jsrsasign.KEYUTIL.getKey(cerStr));
+    if (cerPubKey !== pubKey) throw new Error(".p7b 文件公钥不匹配");
+
+    const appLoad = await JSZip.loadAsync(appBuffer);
+    const hapEntry = Object.values(appLoad.files).find(f => !f.dir && f.name.endsWith(".hap"));
+    if (!hapEntry) throw new Error(".app 文件格式不正确：没有找到 .hap 文件");
+
+    const hapBuf = await hapEntry.async("uint8array");
+    const hapLoad = await JSZip.loadAsync(hapBuf);
+
+    const configFile = hapLoad.file("config.json");
+    if (!configFile) throw new Error("hap 中未找到 config.json");
+    const config = JSON.parse(await configFile.async("text"));
+    config.app.bundleName = bundleName;
+    config.app.version.code = 0;
+    hapLoad.file("config.json", JSON.stringify(config));
+
+    const unsignedBinUint8Array = await hapToBin(hapLoad);
+    const signedBinUint8Array = await signBin({
+      unsignedBinUint8Array,
+      p7bUint8Array: p7bUint8,
+      p12Pem,
+      cerStr,
+      signTimeStr
+    });
+
+    const signedHap = new JSZip();
+    signedHap.file("signed.bin", new Blob([signedBinUint8Array]), { binary: true, compression: "STORE" });
+    return await signedHap.generateAsync({ type: "blob", compression: "STORE" });
   }
 
-  function makeInt64BE(num) {
-    const buffer = new ArrayBuffer(8);
-    new DataView(buffer).setBigUint64(0, BigInt(num), false); // false = big endian
-    return new Uint8Array(buffer);
+  async function processMainFile(file) {
+    state.currentFile = null;
+
+    const type = await detectFileType(file);
+    if (type === "unknown") {
+      throw new Error("无法识别的文件格式（既不是有效 .app/.hap/.bin，也不是 .p7b）");
+    }
+
+    const raw = new Uint8Array(await file.arrayBuffer());
+    const result = {
+      name: file.name,
+      type,
+      raw,
+      files: new Map(),
+      hapBuffer: null,
+      appBuffer: null,
+      p7bBuffer: null,
+      bundleName: "",
+    };
+
+    if (type === "app") {
+      const zip = await JSZip.loadAsync(raw);
+      const hapEntry = Object.values(zip.files).find(f => !f.dir && f.name.endsWith(".hap"));
+      if (!hapEntry) throw new Error(".app 中未找到 .hap 文件");
+      result.hapBuffer = await hapEntry.async("uint8array");
+      const hapZip = await JSZip.loadAsync(result.hapBuffer);
+      for (const [path, entry] of Object.entries(hapZip.files)) {
+        if (entry.dir) continue;
+        result.files.set(path, await entry.async("uint8array"));
+      }
+      result.appBuffer = raw;
+
+    } else if (type === "unsigned-hap") {
+      result.hapBuffer = raw;
+      const zip = await JSZip.loadAsync(raw);
+      for (const [path, entry] of Object.entries(zip.files)) {
+        if (entry.dir) continue;
+        result.files.set(path, await entry.async("uint8array"));
+      }
+
+    } else if (type === "signed-hap") {
+      const zip = await JSZip.loadAsync(raw);
+      const binEntry = Object.values(zip.files).find(f => !f.dir && f.name.endsWith(".bin"));
+      if (!binEntry) throw new Error("已签名 hap 中未找到 .bin 文件");
+      const binBuf = await binEntry.async("uint8array");
+      const parsed = parseBinHeader(binBuf);
+      if (!parsed.isSigned) throw new Error("该 .bin 未签名，应为未签名 hap");
+      result.files = parsed.files;
+      result.p7bBuffer = parsed.p7bBuf;
+      result.bundleName = parsed.bundleName;
+      result.hapBuffer = await buildHapFromFiles(parsed.files);
+      result.appBuffer = new Uint8Array(await (await buildAppFromHap(result.hapBuffer)).arrayBuffer());
+
+    } else if (type === "bin") {
+      const parsed = parseBinHeader(raw);
+      if (!parsed.isSigned) throw new Error("该 .bin 未签名");
+      result.files = parsed.files;
+      result.p7bBuffer = parsed.p7bBuf;
+      result.bundleName = parsed.bundleName;
+      result.hapBuffer = await buildHapFromFiles(parsed.files);
+      result.appBuffer = new Uint8Array(await (await buildAppFromHap(result.hapBuffer)).arrayBuffer());
+    }
+
+    return result;
   }
 
-  function stringToBytes(str) {
-    return new Uint8Array([...str].map(c => c.charCodeAt(0)));
+  function typeLabel(type) {
+    return {
+      "app": "未签名 app",
+      "unsigned-hap": "未签名 hap",
+      "signed-hap": "已签名 hap",
+      "bin": "已签名 bin",
+    }[type] || type;
   }
 
-  function uint8ArrayToHex(uint8Array) {
-    return Array.from(uint8Array)
-      .map(b => b.toString(16).padStart(2, "0"))
-      .join("");
+  function typeBadgeClass(type) {
+    return {
+      "app": "app",
+      "unsigned-hap": "unsigned",
+      "signed-hap": "signed",
+      "bin": "bin",
+    }[type] || "";
   }
 
-  function hexToUint8Array(hex) {
-    return new Uint8Array(hex.match(/.{2}/g).map(h => parseInt(h, 16)));
+  async function renderInfo(result) {
+    const packInfo = parsePackInfo(result.files);
+    const bundleName = packInfo?.summary?.app?.bundleName || result.bundleName || "（未解析到）";
+    const version = packInfo?.summary?.app?.version?.name || "";
+
+    const resIndex = parseResourcesIndex(result.files);
+    const appName = findAppName(result, resIndex) || "（未找到应用名）";
+
+    document.getElementById("infoContent").innerHTML = `
+      <div class="info-row">
+        <span class="info-label">文件名</span>
+        <span class="info-value">${escapeHtml(result.name)}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">类型</span>
+        <span class="info-value"><span class="badge ${typeBadgeClass(result.type)}">${typeLabel(result.type)}</span></span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">包名</span>
+        <span class="info-value">${escapeHtml(bundleName)}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">版本</span>
+        <span class="info-value">${escapeHtml(version)}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">应用名</span>
+        <span class="info-value">${escapeHtml(appName)}</span>
+      </div>
+    `;
+    document.getElementById("infoCard").style.display = "";
   }
 
-  function getTimeStr(date = new Date(new Date().getTime() + 8 * 3600 * 1000)) {
-    const year = date.getUTCFullYear();
-    const month = ("0" + (date.getUTCMonth() + 1)).slice(-2);
-    const day = ("0" + date.getUTCDate()).slice(-2);
-    const hours = ("0" + date.getUTCHours()).slice(-2);
-    const minutes = ("0" + date.getUTCMinutes()).slice(-2);
-    const seconds = ("0" + date.getUTCSeconds()).slice(-2);
-    return `${year}${month}${day}${hours}${minutes}${seconds}`;
+  function renderActions() {
+    const group = document.getElementById("actionsGroup");
+    group.innerHTML = "";
+    const file = state.currentFile;
+    const hasP7b = !!state.currentP7b;
+
+    if (!file) {
+      document.getElementById("actionsArea").style.display = "none";
+      return;
+    }
+
+    const buttons = [];
+
+    if (file.type === "app" || file.type === "unsigned-hap") {
+      const btn = document.createElement("button");
+      btn.className = "btn-primary";
+      btn.textContent = hasP7b
+        ? (file.type === "app" ? "开始签名" : "打包为 app 并签名")
+        : "请先选择 .p7b 文件";
+      btn.disabled = !hasP7b;
+      if (hasP7b) btn.addEventListener("click", handleSign);
+      buttons.push(btn);
+
+    } else if (file.type === "signed-hap" || file.type === "bin") {
+      const dlAppBtn = document.createElement("button");
+      dlAppBtn.className = "hint-btn";
+      dlAppBtn.innerHTML = `<span class="btn-icon">📥</span> 下载未签名 app`;
+      dlAppBtn.addEventListener("click", handleDownloadApp);
+      buttons.push(dlAppBtn);
+
+      if (file.p7bBuffer) {
+        const dlP7bBtn = document.createElement("button");
+        dlP7bBtn.className = "hint-btn";
+        dlP7bBtn.innerHTML = `<span class="btn-icon">🔑</span> 下载原始 p7b`;
+        dlP7bBtn.addEventListener("click", handleDownloadP7b);
+        buttons.push(dlP7bBtn);
+      }
+
+      if (hasP7b) {
+        const resignBtn = document.createElement("button");
+        resignBtn.className = "btn-primary";
+        resignBtn.textContent = "用此 p7b 重新签名";
+        resignBtn.addEventListener("click", handleSign);
+        buttons.push(resignBtn);
+      }
+    }
+
+    buttons.forEach(b => group.appendChild(b));
+    document.getElementById("actionsArea").style.display = buttons.length ? "" : "none";
   }
 
-  async function copyToClipboard(text) {
+  function baseName() {
+    return (state.currentFile?.name || "output").replace(/\.[^.]+$/, "");
+  }
+
+  function handleDownloadApp() {
+    if (!state.currentFile?.appBuffer) return setMessage("app 缓冲区缺失", true);
+    downloadBlob(new Blob([state.currentFile.appBuffer], { type: "application/octet-stream" }), baseName() + ".app");
+    setMessage("已开始下载未签名 app");
+  }
+
+  function handleDownloadP7b() {
+    if (!state.currentFile?.p7bBuffer) return setMessage("该文件不包含可提取的 p7b", true);
+    downloadBlob(new Blob([state.currentFile.p7bBuffer], { type: "application/octet-stream" }), baseName() + ".p7b");
+    setMessage("已开始下载原始 p7b");
+  }
+
+  async function handleSign() {
+    if (!state.currentP7b) return setMessage("请先选择 .p7b 文件", true);
+    if (!state.currentFile) return setMessage("请先上传文件", true);
+
+    setMessage("正在签名，请稍候…");
     try {
-      await navigator.clipboard.writeText(text);
+      let appBuffer;
+      const t = state.currentFile.type;
+
+      if (t === "app") {
+        appBuffer = state.currentFile.raw;
+      } else if (t === "unsigned-hap") {
+        appBuffer = await (await buildAppFromHap(state.currentFile.hapBuffer)).arrayBuffer();
+      } else if (t === "signed-hap" || t === "bin") {
+        appBuffer = state.currentFile.appBuffer;
+      } else {
+        throw new Error("当前文件类型不支持签名");
+      }
+
+      const signedHapBlob = await signHapBuffers(appBuffer, state.currentP7b);
+      downloadBlob(signedHapBlob, baseName() + "-signed.hap");
+      setMessage("签名完成，已开始下载");
+    } catch (e) {
+      setMessage("签名失败：" + e.message, true);
+      throw e;
+    }
+  }
+
+  function setMessage(text, isError = false) {
+    const area = document.getElementById("msgArea");
+    if (!text) { area.innerHTML = ""; return; }
+    area.innerHTML = `<div class="msg${isError ? " error" : ""}">${escapeHtml(text)}</div>`;
+  }
+
+  document.getElementById("mainInput").addEventListener("change", async (e) => {
+    const file = e.target.files[0];
+    document.getElementById("mainFileName").textContent = file?.name || "未选择文件";
+    state.currentFile = null;
+    document.getElementById("infoCard").style.display = "none";
+    renderActions();
+    setMessage("");
+
+    if (!file) return;
+
+    if ((file.name.split(".").pop() || "").toLowerCase() === "p7b") {
+      setMessage("请将 .p7b 文件放到下方\"选择 .p7b 文件\"位置", true);
+      return;
+    }
+
+    setMessage("正在解析文件…");
+    try {
+      const result = await processMainFile(file);
+      state.currentFile = result;
+      await renderInfo(result);
+      renderActions();
+      setMessage("");
+    } catch (err) {
+      setMessage("解析失败：" + err.message, true);
+    }
+  });
+
+  document.getElementById("p7bInput").addEventListener("change", async (e) => {
+    const file = e.target.files[0];
+    document.getElementById("p7bFileName").textContent = file?.name || "未选择文件";
+    state.currentP7b = null;
+    renderActions();
+
+    if (!file) return;
+    try {
+      state.currentP7b = new Uint8Array(await file.arrayBuffer());
+      renderActions();
+    } catch (err) {
+      setMessage("读取 .p7b 失败：" + err.message, true);
+    }
+  });
+
+  window.autoBundleName = async function () {
+    const bundleName = "hap.sign." + getTimeStr();
+    try {
+      await copyToClipboard(bundleName);
+      alert("已复制到剪贴板");
     } catch {
-      execCommandCopyToClipboard();
+      alert("复制失败");
     }
+  };
 
-    function execCommandCopyToClipboard() {
-      let textArea = document.createElement("textArea");
-      // textArea.style.display = "none";
-      textArea.style.position = "fixed";
-      textArea.setAttribute("readonly", "readonly");
-      textArea.value = text;
-      document.body.appendChild(textArea);
-      textArea.select();
-      document.execCommand("Copy");
-      textArea.remove();
+  window.downloadPage = async function () {
+    try {
+      const indexResp = await fetch("index.html");
+      const indexHtml = await indexResp.text();
+      const licenseResp = await fetch("LICENSE");
+      const licenseText = await licenseResp.text();
+      const zip = new JSZip();
+      zip.file("index.html", indexHtml);
+      zip.file("LICENSE", licenseText);
+      const blob = await zip.generateAsync({ type: "blob" });
+      downloadBlob(blob, "hap-sign-utils_" + getTimeStr() + ".zip");
+    } catch (e) {
+      alert("下载失败：" + e.message);
     }
-  }
-
-  function downloadBlob(blob, filename) {
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    a.click();
-    URL.revokeObjectURL(url);
-  }
+  };
 </script>
 
 </html>
